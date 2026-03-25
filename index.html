@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v3.2</title>
+<title>TAW Lead Repository — Upload Tool v3.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -76,7 +76,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="header">
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v3.2</span></h1>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v3.3</span></h1>
     <div class="header-sub">Upload Excel exports from Christian College, Christian Group, or Christian Keywords searches into the central Google Sheet</div>
   </div>
 
@@ -555,7 +555,7 @@ async function runUpload(){
 }
 
 async function readSheet(){
-  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}`,{headers:{Authorization:`Bearer ${accessToken}`}});
+  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(SHEET_NAME)}?valueRenderOption=FORMULA`,{headers:{Authorization:`Bearer ${accessToken}`}});
   if(!res.ok){const e=await res.json();throw new Error(`Read failed: ${e.error?.message||res.status}`);}
   return(await res.json()).values||[];
 }
