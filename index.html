@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v3.1</title>
+<title>TAW Lead Repository — Upload Tool v3.2</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -76,7 +76,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="header">
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v3.1</span></h1>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v3.2</span></h1>
     <div class="header-sub">Upload Excel exports from Christian College, Christian Group, or Christian Keywords searches into the central Google Sheet</div>
   </div>
 
@@ -500,15 +500,20 @@ async function runUpload(){
       SHEET_COLS.forEach((col,ci)=>{
         if(col==='Number'||col==='Region')return;
         if(col==='Champions'){er[ci]=mergeChampions(er[ci]||'',inc[col]||'');return;}
-        // Name and LinkedIn Profile Link: always write as formulas
+        // Name: rebuild hyperlink from incoming URL — only overwrite if we have a fresh URL
         if(col==='Name'){
-          const v=inc['Name'];const u=inc['_profileUrl']||inc['LinkedIn Profile Link']||'';
-          if(v)er[ci]=hyperlink(u,v);
+          const v=inc['Name'];
+          const u=inc['LinkedIn Profile Link']||'';
+          if(v&&u){er[ci]=hyperlink(u,v);}
+          // If no URL available, leave existing cell value untouched (preserves any existing hyperlink)
+          else if(v&&!u&&!er[ci]){er[ci]=v;}
           return;
         }
+        // LinkedIn Profile Link: rebuild hyperlink — only overwrite if we have a fresh URL
         if(col==='LinkedIn Profile Link'){
           const u=inc['LinkedIn Profile Link']||'';
-          if(u)er[ci]=hyperlink(u,'View Profile');
+          if(u){er[ci]=hyperlink(u,'View Profile');}
+          // No URL: leave existing cell value untouched
           return;
         }
         const v=inc[col];if(v!==undefined&&v!=='')er[ci]=v;
