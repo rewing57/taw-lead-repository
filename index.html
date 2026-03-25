@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v2</title>
+<title>TAW Lead Repository — Upload Tool v3</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -76,8 +76,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="header">
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v2</span></h1>
-    <div class="header-sub">Upload Excel exports from PRODUCT01, PRODUCT02, or PRODUCT04 into the central Google Sheet</div>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v3</span></h1>
+    <div class="header-sub">Upload Excel exports from Christian College, Christian Group, or Christian Keywords searches into the central Google Sheet</div>
   </div>
 
   <div class="auth-bar">
@@ -92,11 +92,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   </div>
 
   <div class="card">
-    <div class="card-title">Step 1 — Select Product Source</div>
+    <div class="card-title">Step 1 — Select Source Type</div>
     <div class="product-grid">
-      <button class="product-btn" data-product="P01"><div class="product-btn-label">PRODUCT01</div><div class="product-btn-desc">Boolean keyword faith search</div></button>
-      <button class="product-btn" data-product="P02"><div class="product-btn-label">PRODUCT02</div><div class="product-btn-desc">Christian Colleges filter</div></button>
-      <button class="product-btn" data-product="P04"><div class="product-btn-label">PRODUCT04</div><div class="product-btn-desc">LinkedIn Groups filter</div></button>
+      <button class="product-btn" data-product="P02"><div class="product-btn-label">Christian College</div><div class="product-btn-desc">Christian Colleges filter search</div></button>
+      <button class="product-btn" data-product="P04"><div class="product-btn-label">Christian Group</div><div class="product-btn-desc">LinkedIn Groups filter search</div></button>
+      <button class="product-btn" data-product="P01"><div class="product-btn-label">Christian Keywords</div><div class="product-btn-desc">Boolean keyword faith search</div></button>
     </div>
   </div>
 
@@ -141,7 +141,10 @@ const SHEET_ID     = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
 const SHEET_NAME   = 'Sheet1';
 const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets';
 const REDIRECT_URI = 'https://rewing57.github.io/taw-lead-repository/';
-const SHEET_COLS   = ['Number','Name','Role','Company','Location','State','Region','Mutual Count','Champions','Mutual Connections','Email','LinkedIn ID'];
+const SHEET_COLS   = ['Number','Name','LinkedIn Profile Link','Role','Company','Location','State','Region','Mutual Count','Champions','Mutual Connections','Email','Source','LinkedIn ID'];
+
+// Source label lookup by internal product code
+const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group'};
 
 let accessToken=null, selectedProduct=null, parsedRows=[];
 
@@ -186,7 +189,7 @@ dropzone.addEventListener('drop',e=>{e.preventDefault();dropzone.classList.remov
 fileInput.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
 
 function handleFile(file){
-  if(!selectedProduct){alert('Please select a product source first (Step 1).');return;}
+  if(!selectedProduct){alert('Please select a source type first (Step 1).');return;}
   const reader=new FileReader();
   reader.onload=evt=>{
     try{
@@ -195,7 +198,7 @@ function handleFile(file){
       const ws=wb.Sheets[sheetName];
       const raw=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
       const hIdx=findHeaderRow(raw,selectedProduct);
-      if(hIdx===-1){alert('Could not find column headers. Make sure the correct product is selected.');return;}
+      if(hIdx===-1){alert('Could not find column headers. Make sure the correct source type is selected.');return;}
       const headers=raw[hIdx];
       const dataRows=raw.slice(hIdx+1).filter(r=>r.some(c=>c!==''));
       const links=extractLinks(ws);
@@ -203,7 +206,7 @@ function handleFile(file){
       parsedRows=groupRows(mapped);
       dropzone.classList.add('has-file');
       dropzone.querySelector('.dropzone-label').textContent=`✓ ${file.name} — ${parsedRows.length} unique records parsed`;
-      dropzone.querySelector('.dropzone-hint').textContent=`Product: ${selectedProduct} · Tab: ${sheetName} · Headers found on row ${hIdx+1}`;
+      dropzone.querySelector('.dropzone-hint').textContent=`Source: ${SOURCE_LABEL[selectedProduct]} · Tab: ${sheetName} · Headers found on row ${hIdx+1}`;
       renderPreview();
       checkReady();
     }catch(err){alert('Error reading file: '+err.message);console.error(err);}
@@ -271,10 +274,39 @@ function mapRow(row,headers,product,links,sheetRow){
   }
 
   if(!name)return null;
-  const nameUrl=url(nameCI);
-  const linkedinId=extractId(nameUrl,name,company);
 
-  return{Name:name,Role:role,Company:company,Location:location,State:extractState(location),Region:'','Mutual Count':mutualCount,Champions:champions,'Mutual Connections':mutualConnections,Email:email,'LinkedIn ID':linkedinId};
+  // Extract the full Sales Nav URL from the Name cell hyperlink
+  const nameUrl=url(nameCI);
+
+  // LinkedIn Profile Link: full Sales Nav URL (used for both col C hyperlink and col B name hyperlink)
+  const profileUrl=nameUrl||'';
+
+  // LinkedIn ID: raw ID segment only (stripped from URL) — used as dedup key
+  const linkedinId=extractId(profileUrl);
+
+  // State: extracted from location string
+  const state=extractState(location);
+
+  // Source: derived from product selection
+  const source=SOURCE_LABEL[product]||'';
+
+  return{
+    Name:name,
+    'LinkedIn Profile Link':profileUrl,
+    Role:role,
+    Company:company,
+    Location:location,
+    State:state,
+    Region:'',
+    'Mutual Count':mutualCount,
+    Champions:champions,
+    'Mutual Connections':mutualConnections,
+    Email:email,
+    Source:source,
+    'LinkedIn ID':linkedinId,
+    // Internal only — used for dedup, not a sheet column
+    _profileUrl:profileUrl
+  };
 }
 
 function groupRows(rows){
@@ -293,19 +325,99 @@ function groupRows(rows){
   return Array.from(map.values());
 }
 
-function extractId(url,name,company){
-  if(url){
-    const m1=url.match(/\/sales\/lead\/([^,?\s]+)/i); if(m1)return m1[1];
-    const m2=url.match(/linkedin\.com\/in\/([^/?]+)/i); if(m2)return m2[1];
+// Extract raw ID segment from a Sales Nav or LinkedIn URL
+function extractId(profileUrl){
+  if(profileUrl){
+    const m1=profileUrl.match(/\/sales\/lead\/([^,?\s]+)/i); if(m1)return m1[1];
+    const m2=profileUrl.match(/linkedin\.com\/in\/([^/?]+)/i); if(m2)return m2[1];
   }
-  return (name+'-'+company).toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+  return '';
 }
+
+// Full US state name → abbreviation map, plus metro area patterns
+const STATE_NAME_MAP={
+  'alabama':'AL','alaska':'AK','arizona':'AZ','arkansas':'AR','california':'CA',
+  'colorado':'CO','connecticut':'CT','delaware':'DE','florida':'FL','georgia':'GA',
+  'hawaii':'HI','idaho':'ID','illinois':'IL','indiana':'IN','iowa':'IA',
+  'kansas':'KS','kentucky':'KY','louisiana':'LA','maine':'ME','maryland':'MD',
+  'massachusetts':'MA','michigan':'MI','minnesota':'MN','mississippi':'MS','missouri':'MO',
+  'montana':'MT','nebraska':'NE','nevada':'NV','new hampshire':'NH','new jersey':'NJ',
+  'new mexico':'NM','new york':'NY','north carolina':'NC','north dakota':'ND','ohio':'OH',
+  'oklahoma':'OK','oregon':'OR','pennsylvania':'PA','rhode island':'RI','south carolina':'SC',
+  'south dakota':'SD','tennessee':'TN','texas':'TX','utah':'UT','vermont':'VT',
+  'virginia':'VA','washington':'WA','west virginia':'WV','wisconsin':'WI','wyoming':'WY',
+  'district of columbia':'DC','washington dc':'DC','washington d.c.':'DC'
+};
+
+// Metro area / "Greater X" patterns → state abbreviation
+const METRO_MAP={
+  'indianapolis':'IN','greater indianapolis':'IN','indy':'IN',
+  'chicago':'IL','greater chicago':'IL','chicagoland':'IL',
+  'new york':'NY','greater new york':'NY','nyc':'NY',
+  'los angeles':'CA','greater los angeles':'CA','la metro':'CA','orange county':'CA','silicon valley':'CA','san francisco':'CA','bay area':'CA','greater sacramento':'CA','san diego':'CA',
+  'dallas':'TX','greater dallas':'TX','dallas-fort worth':'TX','dfw':'TX','houston':'TX','greater houston':'TX','austin':'TX','greater austin':'TX','san antonio':'TX',
+  'atlanta':'GA','greater atlanta':'GA',
+  'miami':'FL','greater miami':'FL','tampa':'FL','greater tampa':'FL','orlando':'FL','greater orlando':'FL','jacksonville':'FL',
+  'phoenix':'AZ','greater phoenix':'AZ','scottsdale':'AZ','tempe':'AZ',
+  'seattle':'WA','greater seattle':'WA','puget sound':'WA',
+  'denver':'CO','greater denver':'CO','boulder':'CO',
+  'minneapolis':'MN','greater minneapolis':'MN','twin cities':'MN',
+  'detroit':'MI','greater detroit':'MI','ann arbor':'MI','grand rapids':'MI',
+  'boston':'MA','greater boston':'MA',
+  'philadelphia':'PA','greater philadelphia':'PA','pittsburgh':'PA',
+  'nashville':'TN','greater nashville':'TN','memphis':'TN','knoxville':'TN',
+  'charlotte':'NC','greater charlotte':'NC','raleigh':'NC','triangle':'NC',
+  'columbus':'OH','greater columbus':'OH','cleveland':'OH','cincinnati':'OH',
+  'kansas city':'MO','greater kansas city':'MO','st. louis':'MO','saint louis':'MO',
+  'portland':'OR','greater portland':'OR',
+  'salt lake city':'UT','greater salt lake':'UT','provo':'UT',
+  'las vegas':'NV','greater las vegas':'NV',
+  'louisville':'KY','lexington':'KY',
+  'richmond':'VA','northern virginia':'VA','nova':'VA',
+  'baltimore':'MD','greater baltimore':'MD',
+  'milwaukee':'WI','madison':'WI',
+  'oklahoma city':'OK','tulsa':'OK',
+  'albuquerque':'NM','santa fe':'NM',
+  'omaha':'NE','lincoln':'NE',
+  'hartford':'CT','new haven':'CT',
+  'birmingham':'AL','huntsville':'AL',
+  'jackson':'MS','jackson metro':'MS',
+  'little rock':'AR',
+  'baton rouge':'LA','new orleans':'LA',
+  'columbia':'SC','charleston':'SC','greenville':'SC',
+  'des moines':'IA','iowa city':'IA',
+  'fargo':'ND','bismarck':'ND',
+  'sioux falls':'SD','rapid city':'SD',
+  'billings':'MT','missoula':'MT',
+  'boise':'ID',
+  'anchorage':'AK',
+  'honolulu':'HI'
+};
 
 function extractState(loc){
   if(!loc)return'';
-  const st=['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
-  const m=loc.match(/,\s*([A-Z]{2})(?:\s*,|\s*$)/); if(m&&st.includes(m[1]))return m[1];
-  for(const w of loc.split(/[\s,]+/))if(st.includes(w.toUpperCase()))return w.toUpperCase();
+  const locLower=loc.toLowerCase().trim();
+
+  // 1. Try to match a full US state name anywhere in the string
+  for(const [name,abbr] of Object.entries(STATE_NAME_MAP)){
+    // Match as a whole word/phrase in the location string
+    const re=new RegExp('\\b'+name.replace(/\./g,'\\.')+'\\b','i');
+    if(re.test(locLower))return abbr;
+  }
+
+  // 2. Try 2-letter abbreviation pattern: ", XX" or ", XX," or end of string
+  const m=loc.match(/,\s*([A-Z]{2})(?:\s*,|\s*$)/);
+  if(m){
+    const ST=['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
+    if(ST.includes(m[1]))return m[1];
+  }
+
+  // 3. Try metro area / "Greater X" patterns
+  for(const [metro,abbr] of Object.entries(METRO_MAP)){
+    const re=new RegExp('\\b'+metro.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+    if(re.test(locLower))return abbr;
+  }
+
   return'';
 }
 
@@ -316,11 +428,20 @@ function mergeChampions(a,b){
   return merged.join(', ');
 }
 
+// Build a HYPERLINK formula for Google Sheets
+function hyperlink(url,label){
+  if(!url)return label||'';
+  // Escape double quotes inside url and label
+  const u=url.replace(/"/g,'""');
+  const l=String(label||url).replace(/"/g,'""');
+  return `=HYPERLINK("${u}","${l}")`;
+}
+
 // PREVIEW
 function renderPreview(){
   if(!parsedRows.length)return;
   previewCard.classList.remove('hidden');
-  const cols=['Name','Role','Company','State','Champions','LinkedIn ID'];
+  const cols=['Name','Role','Company','State','Source','Champions','LinkedIn ID'];
   previewCount.textContent=`${parsedRows.length} unique records ready to upload`;
   previewHead.innerHTML='<tr>'+cols.map(c=>`<th>${c}</th>`).join('')+'</tr>';
   previewBody.innerHTML=parsedRows.slice(0,6).map(r=>'<tr>'+cols.map(c=>`<td title="${esc(r[c]||'')}">${esc(r[c]||'—')}</td>`).join('')+'</tr>').join('');
@@ -351,7 +472,7 @@ btnUpload.addEventListener('click',async()=>{
 });
 
 async function runUpload(){
-  log(`Starting upload — ${parsedRows.length} records from ${selectedProduct}`,'head');
+  log(`Starting upload — ${parsedRows.length} records (${SOURCE_LABEL[selectedProduct]})`,'head');
   log('Reading existing sheet data…');setProgress(5);
   const existing=await readSheet();
   const existData=existing.length>1?existing.slice(1):[];
@@ -378,6 +499,17 @@ async function runUpload(){
       SHEET_COLS.forEach((col,ci)=>{
         if(col==='Number'||col==='Region')return;
         if(col==='Champions'){er[ci]=mergeChampions(er[ci]||'',inc[col]||'');return;}
+        // Name and LinkedIn Profile Link: always write as formulas
+        if(col==='Name'){
+          const v=inc['Name'];const u=inc['_profileUrl']||inc['LinkedIn Profile Link']||'';
+          if(v)er[ci]=hyperlink(u,v);
+          return;
+        }
+        if(col==='LinkedIn Profile Link'){
+          const u=inc['LinkedIn Profile Link']||'';
+          if(u)er[ci]=hyperlink(u,'View Profile');
+          return;
+        }
         const v=inc[col];if(v!==undefined&&v!=='')er[ci]=v;
       });
       dataRows[ri]=er;updC++;
@@ -397,7 +529,12 @@ async function runUpload(){
   if(toAppend.length>0){
     log(`Appending ${toAppend.length} new rows…`);
     const start=dataRows.length+1;
-    const appendData=toAppend.map((r,i)=>SHEET_COLS.map(col=>col==='Number'?start+i:(r[col]||'')));
+    const appendData=toAppend.map((r,i)=>SHEET_COLS.map(col=>{
+      if(col==='Number')return start+i;
+      if(col==='Name')return hyperlink(r['LinkedIn Profile Link']||'',r['Name']||'');
+      if(col==='LinkedIn Profile Link')return hyperlink(r['LinkedIn Profile Link']||'','View Profile');
+      return r[col]||'';
+    }));
     await appendRows(appendData);
     log(`${toAppend.length} new rows appended`,'ok');
   }
