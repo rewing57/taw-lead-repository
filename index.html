@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v3.3</title>
+<title>TAW Lead Repository — Upload Tool v3.4</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -76,7 +76,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="header">
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v3.3</span></h1>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v3.4</span></h1>
     <div class="header-sub">Upload Excel exports from Christian College, Christian Group, or Christian Keywords searches into the central Google Sheet</div>
   </div>
 
@@ -423,7 +423,7 @@ function extractState(loc){
 }
 
 function mergeChampions(a,b){
-  const parse=s=>s.split(',').map(x=>x.trim()).filter(Boolean);
+  const parse=s=>String(s||'').split(',').map(x=>x.trim()).filter(Boolean);
   const merged=[...parse(a)];
   for(const n of parse(b))if(!merged.some(e=>e.toLowerCase()===n.toLowerCase()))merged.push(n);
   return merged.join(', ');
