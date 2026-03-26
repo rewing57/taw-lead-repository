@@ -273,8 +273,6 @@ function mapRow(row,headers,product,links,sheetRow){
     const c1=get(['champions']),c2=get(['champion introducer']);
     champCI=c1.ci!==-1?c1.ci:c2.ci; champions=c1.val||c2.val;
     mutualConnections=''; email=get(['email']).val;
-  }
-
   }else if(product==='P05'){
     const n=get(['name']);name=n.val;nameCI=n.ci;
     role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
