@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v3.4</title>
+<title>TAW Lead Repository — Upload Tool v3.5</title>
 <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -76,8 +76,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="header">
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v3.4</span></h1>
-    <div class="header-sub">Upload Excel exports from Christian College, Christian Group, or Christian Keywords searches into the central Google Sheet</div>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v3.5</span></h1>
+    <div class="header-sub">Upload Excel exports from Christian College, Christian Group, Christian Keywords, or Ranked Mutual Connections searches into the central Google Sheet</div>
   </div>
 
   <div class="auth-bar">
@@ -93,10 +93,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="card">
     <div class="card-title">Step 1 — Select Source Type</div>
-    <div class="product-grid">
+    <div class="product-grid" style="grid-template-columns:repeat(4,1fr);">
       <button class="product-btn" data-product="P02"><div class="product-btn-label">Christian College</div><div class="product-btn-desc">Christian Colleges filter search</div></button>
       <button class="product-btn" data-product="P04"><div class="product-btn-label">Christian Group</div><div class="product-btn-desc">LinkedIn Groups filter search</div></button>
       <button class="product-btn" data-product="P01"><div class="product-btn-label">Christian Keywords</div><div class="product-btn-desc">Boolean keyword faith search</div></button>
+      <button class="product-btn" data-product="P05"><div class="product-btn-label">Ranked Mutual</div><div class="product-btn-desc">Mutual connection ranking export</div></button>
     </div>
   </div>
 
@@ -144,7 +145,7 @@ const REDIRECT_URI = 'https://rewing57.github.io/taw-lead-repository/';
 const SHEET_COLS   = ['Number','Name','LinkedIn Profile Link','Role','Company','Location','State','Region','Mutual Count','Champions','Mutual Connections','Email','Source','LinkedIn ID'];
 
 // Source label lookup by internal product code
-const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group'};
+const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group', P05:'Ranked Mutual Connections'};
 
 let accessToken=null, selectedProduct=null, parsedRows=[];
 
@@ -215,7 +216,7 @@ function handleFile(file){
 }
 
 function findHeaderRow(rows,product){
-  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['prospect','role','company']};
+  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['prospect','role','company'],P05:['rank','name','role','company']};
   const need=targets[product];
   for(let i=0;i<rows.length;i++){
     const lower=rows[i].map(c=>String(c).toLowerCase().trim());
@@ -272,6 +273,15 @@ function mapRow(row,headers,product,links,sheetRow){
     const c1=get(['champions']),c2=get(['champion introducer']);
     champCI=c1.ci!==-1?c1.ci:c2.ci; champions=c1.val||c2.val;
     mutualConnections=''; email=get(['email']).val;
+  }
+
+  }else if(product==='P05'){
+    const n=get(['name']);name=n.val;nameCI=n.ci;
+    role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
+    mutualCount=get(['mutual count']).val;
+    champions=''; champCI=-1;
+    const mc=get(['mutual connections']);
+    mutualConnections=url(mc.ci); email='';
   }
 
   if(!name)return null;
@@ -537,6 +547,10 @@ async function runUpload(){
     const start=dataRows.length+1;
     const appendData=toAppend.map((r,i)=>SHEET_COLS.map(col=>{
       if(col==='Number')return start+i;
+      if(col==='Mutual Connections'){
+          const u=r['Mutual Connections']||'';
+          return u?hyperlink(u,'Mutual Connections'):'';
+        }
       if(col==='Name')return hyperlink(r['LinkedIn Profile Link']||'',r['Name']||'');
       if(col==='LinkedIn Profile Link')return hyperlink(r['LinkedIn Profile Link']||'','View Profile');
       return r[col]||'';
