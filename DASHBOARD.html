@@ -128,7 +128,7 @@
       <div>
         <div class="topbar-eyebrow">Truth at Work</div>
         <div class="topbar-title">Lead Dashboard</div>
-        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">v2.0 — JSON/No API</div>
+        <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);margin-top:2px;">v2.1 — JSON/No API</div>
       </div>
       <div class="region-badge" id="regionBadge">—</div>
     </div>
@@ -561,7 +561,16 @@ if(profileUrl&&linkColIdx!==-1){
   });
 
   XLSX.utils.book_append_sheet(wb,ws,'Leads');
-  XLSX.writeFile(wb,`TAW_Leads_${session.region.replace(/\s+/g,'_')}_${session.username}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  
+  const filterParts=[];
+if($('fCompany').value.trim()) filterParts.push('Co-'+$('fCompany').value.trim());
+if($('fRole').value.trim()) filterParts.push('Role-'+$('fRole').value.trim());
+if($('fLocation').value.trim()) filterParts.push('Loc-'+$('fLocation').value.trim());
+if($('fChampion').value.trim()) filterParts.push('Champ-'+$('fChampion').value.trim());
+if($('fStatus').value.trim()) filterParts.push('Status-'+$('fStatus').value.trim());
+const filterStr=filterParts.length?'_'+filterParts.join('_'):'';
+XLSX.writeFile(wb,`TAW_Leads_${session.region.replace(/\s+/g,'_')}_${session.username}${filterStr}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  
   showToast('Download started!');
 });
   
