@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAW Lead Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#0f1a14;--bg2:#172212;--bg3:#1e2d1a;
+      --border:rgba(160,200,120,0.12);--border2:rgba(160,200,120,0.22);
+      --gold:#c8a84b;--gold2:#e8cc7a;--green:#5a9e4a;--green2:#7dc46a;
+      --text:#eef2e8;--text2:rgba(238,242,232,0.65);--text3:rgba(238,242,232,0.35);
+      --red:#e05a4a;--success:#4aaa6a;--radius:6px;
+    }
+    html{font-size:16px;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(90,158,74,0.12) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 90% 90%,rgba(200,168,75,0.07) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+    /* LOGIN */
+    #loginScreen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+    #loginScreen::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(90,158,74,0.12) 0%,transparent 60%);pointer-events:none;}
+    .login-box{position:relative;z-index:1;background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:48px 40px;width:100%;max-width:400px;text-align:center;}
+    .login-eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+    .login-title{font-family:'Crimson Pro',serif;font-size:2.2rem;font-weight:700;margin-bottom:8px;}
+    .login-title span{color:var(--gold2);}
+    .login-sub{font-size:13px;color:var(--text2);margin-bottom:32px;}
+    .login-field{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:12px;outline:none;}
+    .login-field:focus{border-color:var(--gold);}
+    .login-error{font-size:12px;color:var(--red);margin-bottom:12px;min-height:18px;font-family:'DM Mono',monospace;}
+    .btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;transition:all 0.15s;}
+    .btn-primary{background:var(--gold);color:#1a1200;width:100%;justify-content:center;padding:12px;}
+    .btn-primary:hover{background:var(--gold2);}
+    .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+    .btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border2);}
+    .btn-ghost:hover{color:var(--text);border-color:rgba(160,200,120,0.4);}
+    .btn-sm{font-size:12px;padding:5px 10px;}
+    .btn-flag{background:transparent;color:var(--gold);border:1px solid rgba(200,168,75,0.3);font-size:11px;padding:4px 8px;font-family:'DM Mono',monospace;}
+    .btn-flag:hover{background:rgba(200,168,75,0.08);}
+
+    /* MAIN APP */
+    #app{display:none;position:relative;z-index:1;}
+    .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+    .topbar-left{display:flex;align-items:center;gap:16px;}
+    .topbar-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);}
+    .topbar-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;}
+    .region-badge{font-family:'DM Mono',monospace;font-size:11px;background:rgba(200,168,75,0.12);border:1px solid rgba(200,168,75,0.25);color:var(--gold);padding:3px 10px;border-radius:20px;}
+    .topbar-right{display:flex;align-items:center;gap:10px;}
+    .wrap{max-width:1200px;margin:0 auto;padding:32px 24px 80px;}
+
+    /* FILTERS */
+    .filters-bar{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px 20px;margin-bottom:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;align-items:end;}
+    .filter-group{display:flex;flex-direction:column;gap:5px;}
+    .filter-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
+    .filter-input{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:100%;}
+    .filter-input:focus{border-color:var(--gold);}
+    .filter-actions{display:flex;gap:8px;align-items:flex-end;}
+
+    /* TABLE */
+    .table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+    .table-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);}
+    .table-wrap{overflow-x:auto;border-radius:8px;border:1px solid var(--border);}
+    table{width:100%;border-collapse:collapse;font-size:13px;}
+    thead th{background:var(--bg3);color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:10px 14px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;user-select:none;}
+    thead th:hover{color:var(--gold2);}
+    thead th .sort-arrow{margin-left:4px;opacity:0.4;}
+    thead th.sorted .sort-arrow{opacity:1;}
+    tbody td{padding:9px 14px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:middle;}
+    tbody tr:last-child td{border-bottom:none;}
+    tbody tr:hover td{background:rgba(255,255,255,0.02);color:var(--text);}
+    td a{color:var(--green2);text-decoration:none;font-size:12px;}
+    td a:hover{color:var(--gold2);text-decoration:underline;}
+    .name-cell{font-weight:600;color:var(--text);white-space:nowrap;}
+    .td-clamp{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .status-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:4px 8px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;outline:none;cursor:pointer;width:100%;min-width:130px;}
+    .status-select:focus{border-color:var(--gold);}
+    .status-saving{opacity:0.5;}
+    .status-saved{color:var(--success)!important;border-color:rgba(74,170,106,0.4)!important;}
+
+    /* PAGINATION */
+    .pagination{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:12px;}
+    .page-btn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+    .page-btn:hover{border-color:var(--border2);color:var(--text);}
+    .page-btn.active{background:rgba(200,168,75,0.12);border-color:var(--gold);color:var(--gold);}
+    .page-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+    /* MODAL */
+    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+    .modal{background:var(--bg2);border:1px solid var(--border2);border-radius:12px;padding:32px;width:100%;max-width:480px;}
+    .modal-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;margin-bottom:4px;}
+    .modal-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
+    .modal-lead-name{color:var(--gold2);font-weight:600;}
+    .field-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:block;}
+    .modal-select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;margin-bottom:16px;}
+    .modal-select:focus{border-color:var(--gold);}
+    .modal-textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:90px;margin-bottom:20px;}
+    .modal-textarea:focus{border-color:var(--gold);}
+    .modal-actions{display:flex;justify-content:flex-end;gap:10px;}
+    .hidden{display:none!important;}
+    .loading-wrap{text-align:center;padding:60px 20px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);}
+    .loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:12px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:12px 18px;font-size:13px;font-family:'DM Mono',monospace;z-index:300;transition:opacity 0.3s;}
+    .toast.ok{border-color:rgba(74,170,106,0.5);color:var(--success);}
+    .toast.err{border-color:rgba(224,90,74,0.5);color:var(--red);}
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <div class="login-eyebrow">Truth at Work</div>
+    <h1 class="login-title">Lead <span>Dashboard</span></h1>
+    <p class="login-sub">Sign in with your chapter access code to view your region's leads.</p>
+    <input class="login-field" type="text" id="loginUser" placeholder="Chapter username" autocomplete="off" />
+    <input class="login-field" type="password" id="loginPass" placeholder="Password" autocomplete="off" />
+    <div class="login-error" id="loginError"></div>
+    <button class="btn btn-primary" id="btnLogin">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div>
+        <div class="topbar-eyebrow">Truth at Work</div>
+        <div class="topbar-title">Lead Dashboard</div>
+      </div>
+      <div class="region-badge" id="regionBadge">—</div>
+    </div>
+    <div class="topbar-right">
+      <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
+      <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <div class="filter-label">Company</div>
+        <input class="filter-input" id="fCompany" type="text" placeholder="Filter by company…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Role / Title</div>
+        <input class="filter-input" id="fRole" type="text" placeholder="Filter by role…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Location</div>
+        <input class="filter-input" id="fLocation" type="text" placeholder="Filter by location…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Champion / Mutual</div>
+        <input class="filter-input" id="fChampion" type="text" placeholder="e.g. Ron Ewing…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Status</div>
+        <select class="filter-input" id="fStatus">
+          <option value="">All statuses</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-ghost btn-sm" id="btnClearFilters">Clear</button>
+      </div>
+    </div>
+
+    <div class="table-header">
+      <div class="table-count" id="tableCount"></div>
+    </div>
+
+    <div id="loadingWrap" class="loading-wrap">
+      <div class="loading-spinner"></div><br/>Loading leads…
+    </div>
+
+    <div id="tableContainer" class="hidden">
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th data-col="Name">Name <span class="sort-arrow">↕</span></th>
+              <th data-col="Role">Role <span class="sort-arrow">↕</span></th>
+              <th data-col="Company">Company <span class="sort-arrow">↕</span></th>
+              <th data-col="Location">Location <span class="sort-arrow">↕</span></th>
+              <th data-col="Champions">Champion <span class="sort-arrow">↕</span></th>
+              <th data-col="Source">Source <span class="sort-arrow">↕</span></th>
+              <th>Profile</th>
+              <th data-col="Status">Status <span class="sort-arrow">↕</span></th>
+              <th>Flag</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<!-- FLAG MODAL -->
+<div class="modal-overlay hidden" id="flagModal">
+  <div class="modal">
+    <div class="modal-title">Flag Lead for Review</div>
+    <div class="modal-sub">Flagging <span class="modal-lead-name" id="flagLeadName"></span></div>
+    <label class="field-label">Reason</label>
+    <select class="modal-select" id="flagReason">
+      <option value="">Select a reason…</option>
+      <option value="Data outdated">Data outdated</option>
+      <option value="Wrong company">Wrong company</option>
+      <option value="Person moved">Person moved</option>
+      <option value="Remove from list">Remove from list</option>
+      <option value="Already contacted">Already contacted</option>
+      <option value="Other">Other</option>
+    </select>
+    <label class="field-label">Notes (optional)</label>
+    <textarea class="modal-textarea" id="flagNote" placeholder="Add any details here…"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="btnFlagCancel">Cancel</button>
+      <button class="btn btn-primary" id="btnFlagSubmit" style="width:auto;padding:8px 20px;">Submit Flag</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const SHEET_ID    = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
+const API_KEY     = 'YOUR_GOOGLE_SHEETS_API_KEY'; // <-- replace this
+const LEADS_TAB   = 'Sheet1';
+const REGIONS_TAB = 'Regions';
+const STATUS_TAB  = 'Statuses';
+const FLAG_TAB    = 'FlaggedFeedback';
+const CLIENT_ID   = '919443915300-r8nsgflvo3al8nd59pidb3rmadmr2l0m.apps.googleusercontent.com';
+const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets';
+const REDIRECT_URI= window.location.origin + window.location.pathname;
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let session = null;
+let allLeads = [];
+let filteredLeads = [];
+let statusOptions = [];
+let accessToken = null;
+let sortCol = null, sortDir = 1;
+let page = 1;
+const PAGE_SIZE = 50;
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+function showToast(msg, type='ok'){
+  const t=$('toast'); t.textContent=msg; t.className=`toast ${type}`;
+  t.classList.remove('hidden');
+  setTimeout(()=>t.classList.add('hidden'),3000);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════════════
+//  OAUTH (for write operations)
+// ══════════════════════════════════════════════
+function checkOAuthRedirect(){
+  const h=window.location.hash; if(!h)return;
+  const p=new URLSearchParams(h.substring(1));
+  const t=p.get('access_token');
+  if(t){accessToken=t;sessionStorage.setItem('taw_dash_token',t);history.replaceState(null,'',window.location.pathname);}
+}
+function getStoredToken(){const t=sessionStorage.getItem('taw_dash_token');if(t)accessToken=t;}
+function ensureWriteAccess(){
+  if(accessToken)return;
+  sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
+  window.location.href=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPES)}&prompt=consent`;
+}
+
+// ══════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════
+async function doLogin(){
+  const user=$('loginUser').value.trim();
+  const pass=$('loginPass').value.trim();
+  $('loginError').textContent='';
+  if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
+  $('btnLogin').disabled=true;
+  try{
+    const rows=await readPublicSheet(REGIONS_TAB);
+    if(!rows||rows.length<2){$('loginError').textContent='Could not load region data.';return;}
+    const headers=rows[0].map(h=>String(h).toLowerCase().trim());
+    const uIdx=headers.indexOf('username');
+    const pIdx=headers.indexOf('password');
+    const rIdx=headers.indexOf('region');
+    const cIdx=headers.indexOf('chaptername');
+    const match=rows.slice(1).find(r=>
+      String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
+      String(r[pIdx]||'').trim()===pass
+    );
+    if(!match){$('loginError').textContent='Incorrect username or password.';return;}
+    session={username:user,region:String(match[rIdx]||'').trim(),chapter:String(match[cIdx]||user).trim()};
+    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
+    startApp();
+  }catch(e){$('loginError').textContent='Login error: '+e.message;}
+  finally{$('btnLogin').disabled=false;}
+}
+$('btnLogin').addEventListener('click',doLogin);
+$('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ══════════════════════════════════════════════
+//  SHEETS API
+// ══════════════════════════════════════════════
+async function readPublicSheet(tab){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`;
+  const res=await fetch(url);
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
+  return(await res.json()).values||[];
+}
+async function appendToSheet(tab,rowData){
+  ensureWriteAccess();
+  const res=await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
+    {method:'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},
+     body:JSON.stringify({range:tab,majorDimension:'ROWS',values:[rowData]})}
+  );
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
+}
+async function updateCell(tab,row1based,col1based,value){
+  ensureWriteAccess();
+  const colLetter=String.fromCharCode(64+col1based);
+  const range=`${tab}!${colLetter}${row1based}`;
+  const res=await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
+    {method:'PUT',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},
+     body:JSON.stringify({range,majorDimension:'ROWS',values:[[value]]})}
+  );
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
+}
+
+// ══════════════════════════════════════════════
+//  APP INIT
+// ══════════════════════════════════════════════
+async function startApp(){
+  $('loginScreen').style.display='none';
+  $('app').style.display='block';
+  $('regionBadge').textContent=session.region;
+  await loadStatusOptions();
+  await loadLeads();
+}
+
+async function loadStatusOptions(){
+  try{
+    const rows=await readPublicSheet(STATUS_TAB);
+    statusOptions=rows.slice(1).map(r=>String(r[0]||'').trim()).filter(Boolean);
+    const fSel=$('fStatus');
+    statusOptions.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;fSel.appendChild(o);});
+  }catch(e){console.warn('Could not load statuses',e);}
+}
+
+async function loadLeads(){
+  $('loadingWrap').classList.remove('hidden');
+  $('tableContainer').classList.add('hidden');
+  try{
+    const rows=await readPublicSheet(LEADS_TAB);
+    if(!rows||rows.length<2){allLeads=[];renderTable();return;}
+    const headers=rows[0];
+    const region=session.region.toLowerCase().trim();
+    const rIdx=headers.findIndex(h=>String(h).toLowerCase().trim()==='region');
+    allLeads=rows.slice(1)
+      .map((r,i)=>{const obj={};headers.forEach((h,ci)=>obj[h]=r[ci]||'');obj._rowNum=i+2;return obj;})
+      .filter(r=>rIdx===-1 || session.region==='ALL' || String(r[headers[rIdx]]||'').toLowerCase().trim()===region);
+    applyFiltersAndRender();
+  }catch(e){showToast('Error loading leads: '+e.message,'err');}
+  finally{$('loadingWrap').classList.add('hidden');$('tableContainer').classList.remove('hidden');}
+}
+
+// ══════════════════════════════════════════════
+//  FILTERS
+// ══════════════════════════════════════════════
+function applyFiltersAndRender(){
+  const fComp=$('fCompany').value.toLowerCase().trim();
+  const fRole=$('fRole').value.toLowerCase().trim();
+  const fLoc=$('fLocation').value.toLowerCase().trim();
+  const fChamp=$('fChampion').value.toLowerCase().trim();
+  const fStat=$('fStatus').value.toLowerCase().trim();
+  filteredLeads=allLeads.filter(r=>{
+    if(fComp&&!String(r['Company']||'').toLowerCase().includes(fComp))return false;
+    if(fRole&&!String(r['Role']||'').toLowerCase().includes(fRole))return false;
+    if(fLoc&&!String(r['Location']||'').toLowerCase().includes(fLoc))return false;
+    if(fChamp&&!String(r['Champions']||'').toLowerCase().includes(fChamp))return false;
+    if(fStat&&!String(r['Status']||'').toLowerCase().includes(fStat))return false;
+    return true;
+  });
+  if(sortCol){
+    filteredLeads.sort((a,b)=>{
+      const av=String(a[sortCol]||'').toLowerCase();
+      const bv=String(b[sortCol]||'').toLowerCase();
+      return av<bv?-sortDir:av>bv?sortDir:0;
+    });
+  }
+  page=1;
+  renderTable();
+}
+['fCompany','fRole','fLocation','fChampion','fStatus'].forEach(id=>{
+  $(id).addEventListener('input',applyFiltersAndRender);
+  $(id).addEventListener('change',applyFiltersAndRender);
+});
+$('btnClearFilters').addEventListener('click',()=>{
+  ['fCompany','fRole','fLocation','fChampion'].forEach(id=>$(id).value='');
+  $('fStatus').value='';
+  applyFiltersAndRender();
+});
+document.querySelectorAll('thead th[data-col]').forEach(th=>{
+  th.addEventListener('click',()=>{
+    const col=th.dataset.col;
+    if(sortCol===col)sortDir*=-1;else{sortCol=col;sortDir=1;}
+    document.querySelectorAll('thead th').forEach(t=>t.classList.remove('sorted'));
+    th.classList.add('sorted');
+    th.querySelector('.sort-arrow').textContent=sortDir===1?'↑':'↓';
+    applyFiltersAndRender();
+  });
+});
+
+// ══════════════════════════════════════════════
+//  RENDER TABLE
+// ══════════════════════════════════════════════
+function renderTable(){
+  const total=filteredLeads.length;
+  $('tableCount').textContent=`${total} lead${total!==1?'s':''} ${total!==allLeads.length?`(filtered from ${allLeads.length})`:''}`;
+  const start=(page-1)*PAGE_SIZE;
+  const pageRows=filteredLeads.slice(start,start+PAGE_SIZE);
+  const tbody=$('tableBody');
+  tbody.innerHTML='';
+  if(!pageRows.length){
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3);font-family:'DM Mono',monospace;font-size:12px;">No leads found for this region.</td></tr>`;
+    renderPagination(total);return;
+  }
+  pageRows.forEach(r=>{
+    const profileUrl=extractProfileUrl(r['LinkedIn Profile Link']||'');
+    const displayName=stripFormula(r['Name']||'');
+    let statusOpts=`<option value="">— set status —</option>`;
+    if(r['Status']&&!statusOptions.includes(r['Status']))statusOpts+=`<option value="${esc(r['Status'])}" selected>${esc(r['Status'])}</option>`;
+    statusOpts+=statusOptions.map(s=>`<option value="${esc(s)}"${r['Status']===s?' selected':''}>${esc(s)}</option>`).join('');
+    const tr=document.createElement('tr');
+    tr.innerHTML=`
+      <td class="name-cell td-clamp" title="${esc(displayName)}">${esc(displayName)}</td>
+      <td class="td-clamp" title="${esc(r['Role']||'')}">${esc(r['Role']||'—')}</td>
+      <td class="td-clamp" title="${esc(r['Company']||'')}">${esc(r['Company']||'—')}</td>
+      <td class="td-clamp" title="${esc(r['Location']||'')}">${esc(r['Location']||'—')}</td>
+      <td class="td-clamp" title="${esc(r['Champions']||'')}">${esc(r['Champions']||'—')}</td>
+      <td style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text3)">${esc(r['Source']||'—')}</td>
+      <td>${profileUrl?`<a href="${esc(profileUrl)}" target="_blank" rel="noopener">View →</a>`:'—'}</td>
+      <td><select class="status-select" data-row="${r._rowNum}">${statusOpts}</select></td>
+      <td><button class="btn btn-flag" data-name="${esc(displayName)}" data-row="${r._rowNum}">⚑ Flag</button></td>
+    `;
+    const sel=tr.querySelector('.status-select');
+    sel.addEventListener('change',async()=>{
+      const val=sel.value;
+      sel.classList.add('status-saving');
+      try{
+        await saveStatus(r,val);
+        r['Status']=val;
+        sel.classList.remove('status-saving');
+        sel.classList.add('status-saved');
+        setTimeout(()=>sel.classList.remove('status-saved'),1500);
+        showToast('Status saved');
+      }catch(e){sel.classList.remove('status-saving');showToast('Error saving status: '+e.message,'err');}
+    });
+    tr.querySelector('.btn-flag').addEventListener('click',e=>{
+      openFlagModal(e.currentTarget.dataset.name,r);
+    });
+    tbody.appendChild(tr);
+  });
+  renderPagination(total);
+}
+
+function renderPagination(total){
+  const pages=Math.ceil(total/PAGE_SIZE);
+  const el=$('pagination');
+  if(pages<=1){el.innerHTML='';return;}
+  let html=`<button class="page-btn" ${page===1?'disabled':''} onclick="goPage(${page-1})">← Prev</button>`;
+  for(let i=1;i<=pages;i++){
+    if(pages>7&&i>2&&i<pages-1&&Math.abs(i-page)>1){if(i===3||i===pages-2)html+='<span style="color:var(--text3);padding:0 4px">…</span>';continue;}
+    html+=`<button class="page-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html+=`<button class="page-btn" ${page===pages?'disabled':''} onclick="goPage(${page+1})">Next →</button>`;
+  el.innerHTML=html;
+}
+window.goPage=p=>{page=p;renderTable();window.scrollTo(0,0);};
+
+// ══════════════════════════════════════════════
+//  STATUS SAVE
+// ══════════════════════════════════════════════
+async function saveStatus(row,value){
+  const rows=await readPublicSheet(LEADS_TAB);
+  const headers=rows[0];
+  let statusColIdx=headers.findIndex(h=>String(h).toLowerCase().trim()==='status');
+  if(statusColIdx===-1){statusColIdx=headers.length;await updateCell(LEADS_TAB,1,statusColIdx+1,'Status');}
+  await updateCell(LEADS_TAB,row._rowNum,statusColIdx+1,value);
+}
+
+// ══════════════════════════════════════════════
+//  FLAG MODAL
+// ══════════════════════════════════════════════
+let flagTargetRow=null;
+function openFlagModal(name,row){
+  flagTargetRow=row;
+  $('flagLeadName').textContent=name;
+  $('flagReason').value='';
+  $('flagNote').value='';
+  $('flagModal').classList.remove('hidden');
+}
+$('btnFlagCancel').addEventListener('click',()=>$('flagModal').classList.add('hidden'));
+$('flagModal').addEventListener('click',e=>{if(e.target===$('flagModal'))$('flagModal').classList.add('hidden');});
+$('btnFlagSubmit').addEventListener('click',async()=>{
+  const reason=$('flagReason').value;
+  const note=$('flagNote').value.trim();
+  if(!reason){showToast('Please select a reason.','err');return;}
+  $('btnFlagSubmit').disabled=true;
+  try{
+    const now=new Date().toLocaleString();
+    await appendToSheet(FLAG_TAB,[
+      now,session.username,session.region,
+      stripFormula(flagTargetRow['Name']||''),
+      flagTargetRow['LinkedIn ID']||'',
+      flagTargetRow['Company']||'',
+      reason,note
+    ]);
+    $('flagModal').classList.add('hidden');
+    showToast('Flag submitted — thank you!');
+  }catch(e){showToast('Error submitting flag: '+e.message,'err');}
+  finally{$('btnFlagSubmit').disabled=false;}
+});
+
+// ══════════════════════════════════════════════
+//  DOWNLOAD
+// ══════════════════════════════════════════════
+$('btnDownload').addEventListener('click',()=>{
+  if(!filteredLeads.length){showToast('No leads to download.','err');return;}
+  const cols=['Name','Role','Company','Location','State','Region','Champions','Mutual Count','Email','Source','LinkedIn Profile Link','Status','LinkedIn ID'];
+  const data=[cols,...filteredLeads.map(r=>cols.map(c=>{
+    let v=r[c]||'';
+    if(typeof v==='string'&&v.startsWith('='))v=stripFormula(v);
+    return v;
+  }))];
+  const wb=XLSX.utils.book_new();
+  const ws=XLSX.utils.aoa_to_sheet(data);
+  XLSX.utils.book_append_sheet(wb,ws,'Leads');
+  XLSX.writeFile(wb,`TAW_Leads_${session.region.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+  showToast('Download started!');
+});
+
+// ══════════════════════════════════════════════
+//  SIGN OUT
+// ══════════════════════════════════════════════
+$('btnSignOut').addEventListener('click',()=>{
+  sessionStorage.removeItem('taw_dash_session');
+  sessionStorage.removeItem('taw_dash_token');
+  location.reload();
+});
+
+// ══════════════════════════════════════════════
+//  HELPERS
+// ══════════════════════════════════════════════
+function extractProfileUrl(val){
+  if(!val)return'';
+  const m=val.match(/=HYPERLINK\("([^"]+)"/i);
+  if(m)return m[1];
+  if(val.startsWith('http'))return val;
+  return'';
+}
+function stripFormula(val){
+  if(!val)return'';
+  const m=String(val).match(/=HYPERLINK\("[^"]+","([^"]+)"\)/i);
+  if(m)return m[1];
+  return String(val).replace(/^=HYPERLINK\([^)]+\)/i,'').trim()||val;
+}
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+checkOAuthRedirect();
+getStoredToken();
+
+// ADMIN TEST CREDENTIALS — remove or restrict before sharing with chapter presidents
+const ADMIN_USER = 'rewing@truthatwork.org';
+const ADMIN_PASS = 'g3tL3ad$';
+
+function doLogin(){
+  const user=$('loginUser').value.trim();
+  const pass=$('loginPass').value.trim();
+  $('loginError').textContent='';
+  if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
+
+  // Admin shortcut — bypasses Regions sheet, sees all data
+  if(user===ADMIN_USER && pass===ADMIN_PASS){
+    session={username:user, region:'ALL', chapter:'Admin'};
+    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
+    startApp();
+    return;
+  }
+
+  // Normal chapter login via Regions sheet
+  $('btnLogin').disabled=true;
+  readPublicSheet(REGIONS_TAB).then(rows=>{
+    if(!rows||rows.length<2){$('loginError').textContent='Could not load region data.';return;}
+    const headers=rows[0].map(h=>String(h).toLowerCase().trim());
+    const uIdx=headers.indexOf('username');
+    const pIdx=headers.indexOf('password');
+    const rIdx=headers.indexOf('region');
+    const cIdx=headers.indexOf('chaptername');
+    const match=rows.slice(1).find(r=>
+      String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
+      String(r[pIdx]||'').trim()===pass
+    );
+    if(!match){$('loginError').textContent='Incorrect username or password.';return;}
+    session={username:user,region:String(match[rIdx]||'').trim(),chapter:String(match[cIdx]||user).trim()};
+    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
+    startApp();
+  }).catch(e=>{$('loginError').textContent='Login error: '+e.message;})
+  .finally(()=>{$('btnLogin').disabled=false;});
+}
+
+$('btnLogin').addEventListener('click',doLogin);
+$('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+const stored=sessionStorage.getItem('taw_dash_session');
+if(stored){try{session=JSON.parse(stored);startApp();}catch(e){sessionStorage.removeItem('taw_dash_session');}}
+</script>
+</body>
+</html>
+
+
