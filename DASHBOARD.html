@@ -524,7 +524,9 @@ $('btnFlagSubmit').addEventListener('click',()=>{
 // ══════════════════════════════════════════════
 $('btnDownload').addEventListener('click',()=>{
   if(!filteredLeads.length){showToast('No leads to download.','err');return;}
-  const cols=['Name','Role','Company','Location','State','Region','Champions','Mutual Count','Email','Source','LinkedIn Profile Link','Status','LinkedIn ID'];
+  
+  const cols=['Name','LinkedIn Profile Link','Role','Company','Location','State','Region','Champions','Mutual Count','Email','Source','Status','LinkedIn ID'];;
+  
   const wb=XLSX.utils.book_new();
   const wsData=[cols,...filteredLeads.map(r=>cols.map(c=>{
     let v=r[c]||'';
@@ -546,13 +548,15 @@ $('btnDownload').addEventListener('click',()=>{
     }
 
     // LinkedIn Profile Link column — find its index
-    const linkColIdx=cols.indexOf('LinkedIn Profile Link');
-    if(profileUrl&&linkColIdx!==-1){
-      const linkCell=XLSX.utils.encode_cell({r:rowIdx,c:linkColIdx});
-      if(!ws[linkCell])ws[linkCell]={v:'View Profile',t:'s'};
-      ws[linkCell].v='View Profile';
-      ws[linkCell].l={Target:profileUrl};
-    }
+    
+const linkColIdx=cols.indexOf('LinkedIn Profile Link');
+if(profileUrl&&linkColIdx!==-1){
+  const linkCell=XLSX.utils.encode_cell({r:rowIdx,c:linkColIdx});
+  if(!ws[linkCell])ws[linkCell]={v:profileUrl,t:'s'};
+  ws[linkCell].v=profileUrl;
+}
+
+    
   });
 
   XLSX.utils.book_append_sheet(wb,ws,'Leads');
