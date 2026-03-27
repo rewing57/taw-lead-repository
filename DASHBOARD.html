@@ -444,16 +444,18 @@ function renderTable(){
 
     const tr=document.createElement('tr');
     tr.innerHTML=`
-      <td class="name-cell td-clamp" title="${esc(displayName)}">${esc(displayName)}</td>
-      <td class="td-clamp" title="${esc(r['Role']||'')}">${esc(r['Role']||'—')}</td>
-      <td class="td-clamp" title="${esc(r['Company']||'')}">${esc(r['Company']||'—')}</td>
-      <td class="td-clamp" title="${esc(r['Location']||'')}">${esc(r['Location']||'—')}</td>
-      <td class="td-clamp" title="${esc(r['Champions']||'')}">${esc(r['Champions']||'—')}</td>
-      <td style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text3)">${esc(r['Source']||'—')}</td>
-      <td>${profileUrl?`<a href="${esc(profileUrl)}" target="_blank" rel="noopener">View →</a>`:'—'}</td>
-      <td><select class="status-select" data-row="${r._rowNum}">${statusOpts}</select></td>
-      <td><button class="btn btn-flag" data-name="${esc(displayName)}" data-row="${r._rowNum}">⚑ Flag</button></td>
-    `;
+  <td class="name-cell td-clamp" title="${esc(displayName)}">${esc(displayName)}</td>
+  <td class="td-clamp" title="${esc(r['Role']||'')}">${esc(r['Role']||'—')}</td>
+  <td class="td-clamp" title="${esc(r['Company']||'')}">${esc(r['Company']||'—')}</td>
+  <td class="td-clamp" title="${esc(r['Location']||'')}">${esc(r['Location']||'—')}</td>
+  <td style="white-space:nowrap">${esc(r['State']||'—')}</td>
+  <td style="white-space:nowrap;font-family:'DM Mono',monospace;font-size:11px">${esc(r['Region']||'—')}</td>
+  <td class="td-clamp" title="${esc(r['Champions']||'')}">${esc(r['Champions']||'—')}</td>
+  <td style="font-size:11px;font-family:'DM Mono',monospace;color:var(--text3)">${esc(r['Source']||'—')}</td>
+  <td>${profileUrl?`<a href="${esc(profileUrl)}" target="_blank" rel="noopener">View →</a>`:'—'}</td>
+  <td><select class="status-select" data-row="${r._rowNum}">${statusOpts}</select></td>
+  <td><button class="btn btn-flag" data-name="${esc(displayName)}" data-row="${r._rowNum}">⚑ Flag</button></td>
+`;
 
     // Status change — store locally only (write-back to sheet is a future feature)
     const sel=tr.querySelector('.status-select');
