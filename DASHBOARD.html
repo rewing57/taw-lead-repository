@@ -48,6 +48,7 @@
     .topbar-title{font-family:'Crimson Pro',serif;font-size:1.4rem;font-weight:700;}
     .region-badge{font-family:'DM Mono',monospace;font-size:11px;background:rgba(200,168,75,0.12);border:1px solid rgba(200,168,75,0.25);color:var(--gold);padding:3px 10px;border-radius:20px;}
     .topbar-right{display:flex;align-items:center;gap:10px;}
+    .last-updated{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);}
     .wrap{max-width:1200px;margin:0 auto;padding:32px 24px 80px;}
 
     /* FILTERS */
@@ -76,8 +77,6 @@
     .td-clamp{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .status-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:4px 8px;font-size:12px;color:var(--text2);font-family:'DM Mono',monospace;outline:none;cursor:pointer;width:100%;min-width:130px;}
     .status-select:focus{border-color:var(--gold);}
-    .status-saving{opacity:0.5;}
-    .status-saved{color:var(--success)!important;border-color:rgba(74,170,106,0.4)!important;}
 
     /* PAGINATION */
     .pagination{display:flex;align-items:center;gap:8px;justify-content:center;margin-top:20px;font-family:'DM Mono',monospace;font-size:12px;}
@@ -133,6 +132,8 @@
       <div class="region-badge" id="regionBadge">—</div>
     </div>
     <div class="topbar-right">
+      <div class="last-updated" id="lastUpdated"></div>
+      <button class="btn btn-ghost btn-sm" id="btnRefresh">↺ Refresh</button>
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
       <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
     </div>
@@ -229,14 +230,15 @@
 // ══════════════════════════════════════════════
 //  CONFIG
 // ══════════════════════════════════════════════
-const SHEET_ID    = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
-const API_KEY     = 'AIzaSyC0BTQBKAnBUzc2LacWDX_K8Xw-HC5ahtE';; // <-- replace this
-const LEADS_TAB   = 'Sheet1';
-const REGIONS_TAB = 'Regions';const STATUS_TAB  = 'Statuses';
-const FLAG_TAB    = 'FlaggedFeedback';
-const CLIENT_ID   = '919443915300-r8nsgflvo3al8nd59pidb3rmadmr2l0m.apps.googleusercontent.com';
-const SCOPES      = 'https://www.googleapis.com/auth/spreadsheets';
-const REDIRECT_URI= window.location.origin + window.location.pathname;
+const LEADS_JSON_URL = 'https://rewing57.github.io/taw-lead-repository/leads.json';
+const REGIONS_JSON_URL = 'https://rewing57.github.io/taw-lead-repository/regions.json';
+
+// Admin credentials
+const ADMIN_USER = 'rewing@truthatwork.org';
+const ADMIN_PASS = 'g3tL3ad$';
+
+// Default status options (overridden by regions.json if present)
+const DEFAULT_STATUSES = ['Contacted','Meeting Scheduled','Not Interested','Follow Up','Converted','Remove'];
 
 // ══════════════════════════════════════════════
 //  STATE
@@ -244,8 +246,7 @@ const REDIRECT_URI= window.location.origin + window.location.pathname;
 let session = null;
 let allLeads = [];
 let filteredLeads = [];
-let statusOptions = [];
-let accessToken = null;
+let statusOptions = DEFAULT_STATUSES;
 let sortCol = null, sortDir = 1;
 let page = 1;
 const PAGE_SIZE = 50;
@@ -262,22 +263,6 @@ function showToast(msg, type='ok'){
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 
 // ══════════════════════════════════════════════
-//  OAUTH (for write operations)
-// ══════════════════════════════════════════════
-function checkOAuthRedirect(){
-  const h=window.location.hash; if(!h)return;
-  const p=new URLSearchParams(h.substring(1));
-  const t=p.get('access_token');
-  if(t){accessToken=t;sessionStorage.setItem('taw_dash_token',t);history.replaceState(null,'',window.location.pathname);}
-}
-function getStoredToken(){const t=sessionStorage.getItem('taw_dash_token');if(t)accessToken=t;}
-function ensureWriteAccess(){
-  if(accessToken)return;
-  sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
-  window.location.href=`https://accounts.google.com/o/oauth2/v2/auth?client_id=${encodeURIComponent(CLIENT_ID)}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=${encodeURIComponent(SCOPES)}&prompt=consent`;
-}
-
-// ══════════════════════════════════════════════
 //  LOGIN
 // ══════════════════════════════════════════════
 async function doLogin(){
@@ -286,57 +271,35 @@ async function doLogin(){
   $('loginError').textContent='';
   if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
   $('btnLogin').disabled=true;
+
+  // Admin login
+  if(user===ADMIN_USER && pass===ADMIN_PASS){
+    session={username:user, region:'ALL', chapter:'Admin'};
+    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
+    $('btnLogin').disabled=false;
+    startApp();
+    return;
+  }
+
+  // Chapter login — check regions.json
   try{
-    const rows=await readPublicSheet(REGIONS_TAB);
-    if(!rows||rows.length<2){$('loginError').textContent='Could not load region data.';return;}
-    const headers=rows[0].map(h=>String(h).toLowerCase().trim());
-    const uIdx=headers.indexOf('username');
-    const pIdx=headers.indexOf('password');
-    const rIdx=headers.indexOf('region');
-    const cIdx=headers.indexOf('chaptername');
-    const match=rows.slice(1).find(r=>
-      String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
-      String(r[pIdx]||'').trim()===pass
+    const res = await fetch(REGIONS_JSON_URL);
+    if(!res.ok) throw new Error('Could not load region data.');
+    const data = await res.json();
+    const match = (data.regions||[]).find(r=>
+      String(r.username||'').toLowerCase()===user.toLowerCase() &&
+      String(r.password||'')===pass
     );
     if(!match){$('loginError').textContent='Incorrect username or password.';return;}
-    session={username:user,region:String(match[rIdx]||'').trim(),chapter:String(match[cIdx]||user).trim()};
+    session={username:user, region:String(match.region||'').trim(), chapter:String(match.chapterName||user).trim()};
     sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
     startApp();
   }catch(e){$('loginError').textContent='Login error: '+e.message;}
   finally{$('btnLogin').disabled=false;}
 }
+
 $('btnLogin').addEventListener('click',doLogin);
 $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-
-// ══════════════════════════════════════════════
-//  SHEETS API
-// ══════════════════════════════════════════════
-async function readPublicSheet(tab){
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`;
-  const res=await fetch(url);
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
-  return(await res.json()).values||[];
-}
-async function appendToSheet(tab,rowData){
-  ensureWriteAccess();
-  const res=await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`,
-    {method:'POST',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},
-     body:JSON.stringify({range:tab,majorDimension:'ROWS',values:[rowData]})}
-  );
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
-}
-async function updateCell(tab,row1based,col1based,value){
-  ensureWriteAccess();
-  const colLetter=String.fromCharCode(64+col1based);
-  const range=`${tab}!${colLetter}${row1based}`;
-  const res=await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}?valueInputOption=USER_ENTERED`,
-    {method:'PUT',headers:{Authorization:`Bearer ${accessToken}`,'Content-Type':'application/json'},
-     body:JSON.stringify({range,majorDimension:'ROWS',values:[[value]]})}
-  );
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
-}
 
 // ══════════════════════════════════════════════
 //  APP INIT
@@ -344,36 +307,63 @@ async function updateCell(tab,row1based,col1based,value){
 async function startApp(){
   $('loginScreen').style.display='none';
   $('app').style.display='block';
-  $('regionBadge').textContent=session.region;
-  await loadStatusOptions();
+  $('regionBadge').textContent = session.region==='ALL'?'All Regions':session.region;
   await loadLeads();
+  populateStatusFilter();
 }
 
-async function loadStatusOptions(){
-  try{
-    const rows=await readPublicSheet(STATUS_TAB);
-    statusOptions=rows.slice(1).map(r=>String(r[0]||'').trim()).filter(Boolean);
-    const fSel=$('fStatus');
-    statusOptions.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;fSel.appendChild(o);});
-  }catch(e){console.warn('Could not load statuses',e);}
-}
-
+// ══════════════════════════════════════════════
+//  LOAD LEADS FROM JSON
+// ══════════════════════════════════════════════
 async function loadLeads(){
   $('loadingWrap').classList.remove('hidden');
   $('tableContainer').classList.add('hidden');
   try{
-    const rows=await readPublicSheet(LEADS_TAB);
-    if(!rows||rows.length<2){allLeads=[];renderTable();return;}
-    const headers=rows[0];
-    const region=session.region.toLowerCase().trim();
-    const rIdx=headers.findIndex(h=>String(h).toLowerCase().trim()==='region');
-    allLeads=rows.slice(1)
-      .map((r,i)=>{const obj={};headers.forEach((h,ci)=>obj[h]=r[ci]||'');obj._rowNum=i+2;return obj;})
-      .filter(r=>rIdx===-1 || session.region==='ALL' || String(r[headers[rIdx]]||'').toLowerCase().trim()===region);
+    const res = await fetch(LEADS_JSON_URL+'?v='+Date.now());
+    if(!res.ok) throw new Error('Could not load leads data.');
+    const data = await res.json();
+
+    // Show last updated time
+    if(data.updated){
+      const d = new Date(data.updated);
+      $('lastUpdated').textContent = 'Updated: '+d.toLocaleString();
+    }
+
+    // Load status options if present in JSON
+    if(data.statuses && data.statuses.length) statusOptions = data.statuses;
+
+    const region = session.region.toLowerCase().trim();
+    allLeads = (data.rows||[]).map((r,i)=>({...r, _rowNum:i+2})).filter(r=>{
+      if(session.region==='ALL') return true;
+      return String(r['Region']||'').toLowerCase().trim()===region;
+    });
+
     applyFiltersAndRender();
-  }catch(e){showToast('Error loading leads: '+e.message,'err');}
-  finally{$('loadingWrap').classList.add('hidden');$('tableContainer').classList.remove('hidden');}
+  }catch(e){
+    showToast('Error loading leads: '+e.message,'err');
+  }finally{
+    $('loadingWrap').classList.add('hidden');
+    $('tableContainer').classList.remove('hidden');
+  }
 }
+
+function populateStatusFilter(){
+  const fSel=$('fStatus');
+  // Clear existing options except first
+  while(fSel.options.length>1) fSel.remove(1);
+  statusOptions.forEach(s=>{const o=document.createElement('option');o.value=s;o.textContent=s;fSel.appendChild(o);});
+}
+
+// ══════════════════════════════════════════════
+//  REFRESH BUTTON
+// ══════════════════════════════════════════════
+$('btnRefresh').addEventListener('click', async ()=>{
+  $('btnRefresh').textContent='↺ Refreshing…';
+  await loadLeads();
+  populateStatusFilter();
+  $('btnRefresh').textContent='↺ Refresh';
+  showToast('Data refreshed');
+});
 
 // ══════════════════════════════════════════════
 //  FILTERS
@@ -384,6 +374,7 @@ function applyFiltersAndRender(){
   const fLoc=$('fLocation').value.toLowerCase().trim();
   const fChamp=$('fChampion').value.toLowerCase().trim();
   const fStat=$('fStatus').value.toLowerCase().trim();
+
   filteredLeads=allLeads.filter(r=>{
     if(fComp&&!String(r['Company']||'').toLowerCase().includes(fComp))return false;
     if(fRole&&!String(r['Role']||'').toLowerCase().includes(fRole))return false;
@@ -392,6 +383,7 @@ function applyFiltersAndRender(){
     if(fStat&&!String(r['Status']||'').toLowerCase().includes(fStat))return false;
     return true;
   });
+
   if(sortCol){
     filteredLeads.sort((a,b)=>{
       const av=String(a[sortCol]||'').toLowerCase();
@@ -402,6 +394,7 @@ function applyFiltersAndRender(){
   page=1;
   renderTable();
 }
+
 ['fCompany','fRole','fLocation','fChampion','fStatus'].forEach(id=>{
   $(id).addEventListener('input',applyFiltersAndRender);
   $(id).addEventListener('change',applyFiltersAndRender);
@@ -411,6 +404,7 @@ $('btnClearFilters').addEventListener('click',()=>{
   $('fStatus').value='';
   applyFiltersAndRender();
 });
+
 document.querySelectorAll('thead th[data-col]').forEach(th=>{
   th.addEventListener('click',()=>{
     const col=th.dataset.col;
@@ -432,16 +426,19 @@ function renderTable(){
   const pageRows=filteredLeads.slice(start,start+PAGE_SIZE);
   const tbody=$('tableBody');
   tbody.innerHTML='';
+
   if(!pageRows.length){
-    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3);font-family:'DM Mono',monospace;font-size:12px;">No leads found for this region.</td></tr>`;
-    renderPagination(total);return;
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text3);font-family:'DM Mono',monospace;font-size:12px;">No leads found.</td></tr>`;
+    renderPagination(total);
+    return;
   }
+
   pageRows.forEach(r=>{
     const profileUrl=extractProfileUrl(r['LinkedIn Profile Link']||'');
     const displayName=stripFormula(r['Name']||'');
     let statusOpts=`<option value="">— set status —</option>`;
-    if(r['Status']&&!statusOptions.includes(r['Status']))statusOpts+=`<option value="${esc(r['Status'])}" selected>${esc(r['Status'])}</option>`;
     statusOpts+=statusOptions.map(s=>`<option value="${esc(s)}"${r['Status']===s?' selected':''}>${esc(s)}</option>`).join('');
+
     const tr=document.createElement('tr');
     tr.innerHTML=`
       <td class="name-cell td-clamp" title="${esc(displayName)}">${esc(displayName)}</td>
@@ -454,24 +451,21 @@ function renderTable(){
       <td><select class="status-select" data-row="${r._rowNum}">${statusOpts}</select></td>
       <td><button class="btn btn-flag" data-name="${esc(displayName)}" data-row="${r._rowNum}">⚑ Flag</button></td>
     `;
+
+    // Status change — store locally only (write-back to sheet is a future feature)
     const sel=tr.querySelector('.status-select');
-    sel.addEventListener('change',async()=>{
-      const val=sel.value;
-      sel.classList.add('status-saving');
-      try{
-        await saveStatus(r,val);
-        r['Status']=val;
-        sel.classList.remove('status-saving');
-        sel.classList.add('status-saved');
-        setTimeout(()=>sel.classList.remove('status-saved'),1500);
-        showToast('Status saved');
-      }catch(e){sel.classList.remove('status-saving');showToast('Error saving status: '+e.message,'err');}
+    sel.addEventListener('change',()=>{
+      r['Status']=sel.value;
+      showToast('Status noted — will sync on next export');
     });
+
     tr.querySelector('.btn-flag').addEventListener('click',e=>{
       openFlagModal(e.currentTarget.dataset.name,r);
     });
+
     tbody.appendChild(tr);
   });
+
   renderPagination(total);
 }
 
@@ -490,17 +484,6 @@ function renderPagination(total){
 window.goPage=p=>{page=p;renderTable();window.scrollTo(0,0);};
 
 // ══════════════════════════════════════════════
-//  STATUS SAVE
-// ══════════════════════════════════════════════
-async function saveStatus(row,value){
-  const rows=await readPublicSheet(LEADS_TAB);
-  const headers=rows[0];
-  let statusColIdx=headers.findIndex(h=>String(h).toLowerCase().trim()==='status');
-  if(statusColIdx===-1){statusColIdx=headers.length;await updateCell(LEADS_TAB,1,statusColIdx+1,'Status');}
-  await updateCell(LEADS_TAB,row._rowNum,statusColIdx+1,value);
-}
-
-// ══════════════════════════════════════════════
 //  FLAG MODAL
 // ══════════════════════════════════════════════
 let flagTargetRow=null;
@@ -513,24 +496,27 @@ function openFlagModal(name,row){
 }
 $('btnFlagCancel').addEventListener('click',()=>$('flagModal').classList.add('hidden'));
 $('flagModal').addEventListener('click',e=>{if(e.target===$('flagModal'))$('flagModal').classList.add('hidden');});
-$('btnFlagSubmit').addEventListener('click',async()=>{
+
+$('btnFlagSubmit').addEventListener('click',()=>{
   const reason=$('flagReason').value;
   const note=$('flagNote').value.trim();
   if(!reason){showToast('Please select a reason.','err');return;}
-  $('btnFlagSubmit').disabled=true;
-  try{
-    const now=new Date().toLocaleString();
-    await appendToSheet(FLAG_TAB,[
-      now,session.username,session.region,
-      stripFormula(flagTargetRow['Name']||''),
-      flagTargetRow['LinkedIn ID']||'',
-      flagTargetRow['Company']||'',
-      reason,note
-    ]);
-    $('flagModal').classList.add('hidden');
-    showToast('Flag submitted — thank you!');
-  }catch(e){showToast('Error submitting flag: '+e.message,'err');}
-  finally{$('btnFlagSubmit').disabled=false;}
+
+  // Store flag locally in sessionStorage until we have a write-back mechanism
+  const flags=JSON.parse(sessionStorage.getItem('taw_flags')||'[]');
+  flags.push({
+    timestamp:new Date().toLocaleString(),
+    username:session.username,
+    region:session.region,
+    name:stripFormula(flagTargetRow['Name']||''),
+    linkedinId:flagTargetRow['LinkedIn ID']||'',
+    company:flagTargetRow['Company']||'',
+    reason,
+    note
+  });
+  sessionStorage.setItem('taw_flags',JSON.stringify(flags));
+  $('flagModal').classList.add('hidden');
+  showToast('Flag saved — thank you!');
 });
 
 // ══════════════════════════════════════════════
@@ -556,7 +542,7 @@ $('btnDownload').addEventListener('click',()=>{
 // ══════════════════════════════════════════════
 $('btnSignOut').addEventListener('click',()=>{
   sessionStorage.removeItem('taw_dash_session');
-  sessionStorage.removeItem('taw_dash_token');
+  sessionStorage.removeItem('taw_flags');
   location.reload();
 });
 
@@ -565,70 +551,26 @@ $('btnSignOut').addEventListener('click',()=>{
 // ══════════════════════════════════════════════
 function extractProfileUrl(val){
   if(!val)return'';
-  const m=val.match(/=HYPERLINK\("([^"]+)"/i);
+  const m=String(val).match(/=HYPERLINK\("([^"]+)"/i);
   if(m)return m[1];
-  if(val.startsWith('http'))return val;
+  if(String(val).startsWith('http'))return val;
   return'';
 }
 function stripFormula(val){
   if(!val)return'';
   const m=String(val).match(/=HYPERLINK\("[^"]+","([^"]+)"\)/i);
   if(m)return m[1];
-  return String(val).replace(/^=HYPERLINK\([^)]+\)/i,'').trim()||val;
+  return String(val).replace(/^=HYPERLINK\([^)]+\)/i,'').trim()||String(val);
 }
 
 // ══════════════════════════════════════════════
 //  BOOT
 // ══════════════════════════════════════════════
-checkOAuthRedirect();
-getStoredToken();
-
-// ADMIN TEST CREDENTIALS — remove or restrict before sharing with chapter presidents
-const ADMIN_USER = 'rewing@truthatwork.org';
-const ADMIN_PASS = 'g3tL3ad$';
-
-function doLogin(){
-  const user=$('loginUser').value.trim();
-  const pass=$('loginPass').value.trim();
-  $('loginError').textContent='';
-  if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
-
-  // Admin shortcut — bypasses Regions sheet, sees all data
-  if(user===ADMIN_USER && pass===ADMIN_PASS){
-    session={username:user, region:'ALL', chapter:'Admin'};
-    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
-    startApp();
-    return;
-  }
-
-  // Normal chapter login via Regions sheet
-  $('btnLogin').disabled=true;
-  readPublicSheet(REGIONS_TAB).then(rows=>{
-    if(!rows||rows.length<2){$('loginError').textContent='Could not load region data.';return;}
-    const headers=rows[0].map(h=>String(h).toLowerCase().trim());
-    const uIdx=headers.indexOf('username');
-    const pIdx=headers.indexOf('password');
-    const rIdx=headers.indexOf('region');
-    const cIdx=headers.indexOf('chaptername');
-    const match=rows.slice(1).find(r=>
-      String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
-      String(r[pIdx]||'').trim()===pass
-    );
-    if(!match){$('loginError').textContent='Incorrect username or password.';return;}
-    session={username:user,region:String(match[rIdx]||'').trim(),chapter:String(match[cIdx]||user).trim()};
-    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
-    startApp();
-  }).catch(e=>{$('loginError').textContent='Login error: '+e.message;})
-  .finally(()=>{$('btnLogin').disabled=false;});
-}
-
-$('btnLogin').addEventListener('click',doLogin);
-$('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-
 const stored=sessionStorage.getItem('taw_dash_session');
-if(stored){try{session=JSON.parse(stored);startApp();}catch(e){sessionStorage.removeItem('taw_dash_session');}}
+if(stored){
+  try{session=JSON.parse(stored);startApp();}
+  catch(e){sessionStorage.removeItem('taw_dash_session');}
+}
 </script>
 </body>
 </html>
-
-
