@@ -497,10 +497,10 @@ $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 async function startApp(){
   $('loginScreen').style.display='none';
   $('app').style.display='block';
-  const isAdmin=session.regions[0]==='ALL';
+  const isAdmin=session.regions&&session.regions[0]==='ALL';
   $('regionBadge').textContent=isAdmin?'All Regions':session.region;
   // Set topbar user name
-  const userLabel=isAdmin?'Admin':`${session.fullName}, Chapter President`;
+  const userLabel=isAdmin?'ADMINISTRATOR':`${session.fullName}, Chapter President`;
   $('topbarUser').textContent=userLabel;
   await loadStatusOptions();
   await loadLeads();
@@ -532,7 +532,7 @@ async function loadLeads(){
 
     // Region filter — support multiple regions
     const regionCol=ci['REGION (auto)'];
-    const isAdmin=session.regions[0]==='ALL';
+    const isAdmin=session.regions&&session.regions[0]==='ALL';
     const myRegions=session.regions.map(r=>r.toLowerCase().trim());
 
     // Store raw rows for download (filtered by region)
@@ -640,7 +640,7 @@ async function loadLeads(){
 // ══════════════════════════════════════════════
 // ── BUILD FILTER CHECKLISTS ──
 function buildFilterChecklists(){
-  const isAdmin=session.regions[0]==='ALL';
+  const isAdmin=session.regions&&session.regions[0]==='ALL';
 
   // Collect unique regions and CPs from loaded leads
   const allRegions=[...new Set(allLeads.map(l=>l.Region).filter(Boolean))].sort();
@@ -747,7 +747,7 @@ function applyFiltersAndRender(){
   const fStat=$('fStatus').value.toLowerCase().trim();
   const fDateFrom=$('fDateFrom').value; // YYYY-MM-DD
   const fDateTo=$('fDateTo').value;
-  const isAdmin=session.regions[0]==='ALL';
+  const isAdmin=session.regions&&session.regions[0]==='ALL';
 
   filteredLeads=allLeads.filter(r=>{
     if(fComp&&!String(r.Company||'').toLowerCase().includes(fComp))return false;
@@ -1091,7 +1091,15 @@ $('btnSignOut').addEventListener('click',()=>{
 checkOAuthRedirect();
 getStoredToken();
 const stored=sessionStorage.getItem('taw_dash_session');
-if(stored){try{session=JSON.parse(stored);startApp();}catch(e){sessionStorage.removeItem('taw_dash_session');}}
+if(stored){try{
+  session=JSON.parse(stored);
+  // Migrate old session format that doesn't have regions array
+  if(!session.regions){
+    session.regions=session.region==='ALL'?['ALL']:[session.region||''];
+    session.fullName=session.fullName||session.chapter||session.username||'';
+  }
+  startApp();
+}catch(e){sessionStorage.removeItem('taw_dash_session');}}
 </script>
 </body>
 </html>
