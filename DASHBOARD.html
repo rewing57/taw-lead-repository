@@ -65,53 +65,62 @@
     .lead-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);}
 
     /* ── CARD GRID ── */
-    .cards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;}
+    .cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 
     /* ── LEAD CARD ── */
-    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);padding:0;overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:flex;flex-direction:column;}
-    .lead-card:hover{border-color:var(--border3);box-shadow:0 4px 24px rgba(0,0,0,0.3);}
-    .card-header{padding:16px 18px 12px;border-bottom:1px solid var(--border);}
-    .card-name-row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
-    .card-name{font-family:'Crimson Pro',serif;font-size:1.1rem;font-weight:600;color:var(--text);line-height:1.3;}
+    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:280px 1fr auto;grid-template-rows:auto;}
+    .lead-card:hover{border-color:var(--border3);box-shadow:0 2px 16px rgba(0,0,0,0.25);}
+
+    /* left column — identity */
+    .card-header{padding:16px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-start;}
+    .card-name{font-family:'Crimson Pro',serif;font-size:1.05rem;font-weight:600;color:var(--text);line-height:1.3;margin-bottom:4px;}
     .card-name a{color:var(--text);text-decoration:none;}
     .card-name a:hover{color:var(--gold2);}
     .card-role{font-size:12px;color:var(--text2);margin-bottom:2px;line-height:1.4;}
-    .card-company{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;}
-    .card-location{font-size:11px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace;}
+    .card-company{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;}
+    .card-location{font-size:11px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace;line-height:1.4;}
 
     /* source badges */
-    .source-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+    .source-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;}
     .badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:0.05em;font-weight:500;}
     .badge-school{background:var(--gold3);color:var(--gold);border:1px solid rgba(200,168,75,0.3);}
     .badge-group{background:var(--green3);color:var(--green2);border:1px solid rgba(90,158,74,0.3);}
     .badge-keywords{background:var(--blue2);color:var(--blue);border:1px solid rgba(74,142,204,0.3);}
 
-    /* card body */
-    .card-body{padding:12px 18px;flex:1;display:flex;flex-direction:column;gap:10px;}
+    /* middle column — connections */
+    .card-body{padding:14px 20px;display:flex;flex-direction:column;justify-content:center;gap:8px;border-right:1px solid var(--border);}
 
     /* connections section */
     .connections-section{}
-    .connections-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
-    .connections-list{display:flex;flex-direction:column;gap:4px;}
-    .connection-item{display:flex;align-items:center;gap:6px;font-size:12px;}
-    .connection-name{color:var(--text2);}
-    .connection-link{color:var(--green2);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;white-space:nowrap;}
-    .connection-link:hover{color:var(--gold2);}
-    .mutual-link{display:inline-flex;align-items:center;gap:5px;color:var(--gold);text-decoration:none;font-size:12px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(200,168,75,0.25);padding:4px 10px;border-radius:4px;transition:all 0.15s;}
+    .connections-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:7px;}
+    .connections-list{display:flex;flex-wrap:wrap;gap:6px;}
+    .connection-item{display:flex;align-items:center;}
+    .connection-name{color:var(--text2);font-size:12px;}
+    .connection-link{color:var(--green2);text-decoration:none;font-size:12px;white-space:nowrap;background:var(--bg3);border:1px solid var(--border);padding:3px 9px;border-radius:4px;transition:all 0.15s;}
+    .connection-link:hover{color:var(--gold2);border-color:rgba(200,168,75,0.3);}
+    .mutual-link{display:inline-flex;align-items:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(200,168,75,0.25);padding:4px 10px;border-radius:4px;transition:all 0.15s;}
     .mutual-link:hover{background:rgba(200,168,75,0.25);color:var(--gold2);}
     .no-connections{font-size:11px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;}
 
-    /* card footer */
-    .card-footer{padding:10px 18px 12px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;}
-    .status-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:5px 8px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;outline:none;cursor:pointer;flex:1;min-width:0;}
+    /* right column — actions */
+    .card-footer{padding:14px 18px;display:flex;flex-direction:column;align-items:stretch;justify-content:center;gap:8px;min-width:200px;}
+    .status-select{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:7px 10px;font-size:11px;color:var(--text2);font-family:'DM Mono',monospace;outline:none;cursor:pointer;width:100%;}
     .status-select:focus{border-color:var(--gold);}
     .status-saving{opacity:0.5;}
     .status-saved{color:var(--success)!important;border-color:rgba(74,170,106,0.4)!important;}
 
     /* region/cp chip */
-    .card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:2px;}
+    .card-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
     .chip{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);}
     .chip-cp{background:rgba(90,158,74,0.1);border-color:rgba(90,158,74,0.25);color:var(--green2);}
+
+    /* responsive — stack on small screens */
+    @media(max-width:900px){
+      .lead-card{grid-template-columns:1fr;grid-template-rows:auto auto auto;}
+      .card-header{border-right:none;border-bottom:1px solid var(--border);}
+      .card-body{border-right:none;border-bottom:1px solid var(--border);}
+      .card-footer{flex-direction:row;min-width:0;}
+    }
 
     /* ── PAGINATION ── */
     .pagination{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:28px;font-family:'DM Mono',monospace;font-size:12px;}
@@ -143,9 +152,7 @@
     .toast.ok{border-color:rgba(74,170,106,0.5);color:var(--success);}
     .toast.err{border-color:rgba(224,90,74,0.5);color:var(--red);}
 
-    /* ── RESPONSIVE ── */
     @media(max-width:600px){
-      .cards-grid{grid-template-columns:1fr;}
       .wrap{padding:16px 14px 60px;}
       .topbar{padding:10px 14px;}
       .filters-bar{grid-template-columns:1fr 1fr;}
@@ -200,6 +207,14 @@
       <div class="filter-group">
         <div class="filter-label">Connection Name</div>
         <input class="filter-input" id="fChampion" type="text" placeholder="e.g. Ron Ewing…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Region</div>
+        <input class="filter-input" id="fRegion" type="text" placeholder="Filter by region…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">CP</div>
+        <input class="filter-input" id="fCP" type="text" placeholder="Filter by CP…" />
       </div>
       <div class="filter-group">
         <div class="filter-label">Source</div>
@@ -558,6 +573,8 @@ function applyFiltersAndRender(){
   const fChamp=$('fChampion').value.toLowerCase().trim();
   const fSrc=$('fSource').value.toLowerCase().trim();
   const fStat=$('fStatus').value.toLowerCase().trim();
+  const fRegion=$('fRegion').value.toLowerCase().trim();
+  const fCP=$('fCP').value.toLowerCase().trim();
 
   filteredLeads=allLeads.filter(r=>{
     if(fComp&&!String(r.Company||'').toLowerCase().includes(fComp))return false;
@@ -575,6 +592,8 @@ function applyFiltersAndRender(){
       if(count<2)return false;
     }
     if(fStat&&!String(r.Status||'').toLowerCase().includes(fStat))return false;
+    if(fRegion&&!String(r.Region||'').toLowerCase().includes(fRegion))return false;
+    if(fCP&&!String(r.CP||'').toLowerCase().includes(fCP))return false;
     return true;
   });
 
@@ -582,12 +601,12 @@ function applyFiltersAndRender(){
   renderCards();
 }
 
-['fCompany','fRole','fLocation','fChampion','fSource','fStatus'].forEach(id=>{
+['fCompany','fRole','fLocation','fChampion','fSource','fStatus','fRegion','fCP'].forEach(id=>{
   $(id).addEventListener('input',applyFiltersAndRender);
   $(id).addEventListener('change',applyFiltersAndRender);
 });
 $('btnClearFilters').addEventListener('click',()=>{
-  ['fCompany','fRole','fLocation','fChampion'].forEach(id=>$(id).value='');
+  ['fCompany','fRole','fLocation','fChampion','fRegion','fCP'].forEach(id=>$(id).value='');
   $('fSource').value='';
   $('fStatus').value='';
   applyFiltersAndRender();
@@ -666,9 +685,7 @@ function renderCards(){
 
     card.innerHTML=`
       <div class="card-header">
-        <div class="card-name-row">
-          <div class="card-name">${nameHtml}</div>
-        </div>
+        <div class="card-name">${nameHtml}</div>
         <div class="card-role">${esc(lead.Role||'—')}</div>
         <div class="card-company">${esc(lead.Company||'—')}</div>
         <div class="card-location">${esc(lead.Location||'—')}${lead.State?' · '+esc(lead.State):''}</div>
@@ -680,7 +697,7 @@ function renderCards(){
       </div>
       <div class="card-footer">
         <select class="status-select">${statusOpts}</select>
-        <button class="btn btn-flag" data-name="${esc(lead.Name||'')}">⚑</button>
+        <button class="btn btn-flag" data-name="${esc(lead.Name||'')}">⚑ Flag</button>
       </div>
     `;
 
@@ -810,30 +827,40 @@ $('btnDownload').addEventListener('click',async()=>{
       return filteredKeys.has(profileUrl)||filteredKeys.has(`__nokey_${formulaRows.indexOf(row)-1}`);
     });
 
-    // Build workbook
-    const wb=XLSX.utils.book_new();
-    const wsData=[headers,...dataRows];
-    const ws=XLSX.utils.aoa_to_sheet(wsData);
+    // Build worksheet data — plain text values for aoa_to_sheet
+    // then patch hyperlink cells individually after
+    const hyperlinkColIndices=[0,1,9,10,11]; // A,B,J,K,L (0-indexed)
 
-    // Add hyperlinks for cols A (Name), J (Connection), K (Mutual), L (LinkedIn)
-    const hyperlinkCols=[0,1,9,10,11]; // A,B,J,K,L (0-indexed)
-    wsData.forEach((row,rowIdx)=>{
-      if(rowIdx===0)return; // skip header
-      hyperlinkCols.forEach(colIdx=>{
-        const cellVal=row[colIdx]||'';
-        const url=extractUrl(String(cellVal));
-        const name=extractName(String(cellVal));
-        if(url){
-          const cellRef=XLSX.utils.encode_cell({r:rowIdx,c:colIdx});
-          if(!ws[cellRef])ws[cellRef]={t:'s',v:name||url};
-          else ws[cellRef].v=name||url;
-          ws[cellRef].l={Target:url,Tooltip:name||url};
+    // Build plain-value rows (strip =HYPERLINK() formulas to display text)
+    const plainData=[headers,...dataRows.map(row=>
+      row.map((cell,ci)=>{
+        if(hyperlinkColIndices.includes(ci)){
+          return extractName(String(cell||''))||extractUrl(String(cell||''))||String(cell||'');
         }
+        return cell||'';
+      })
+    )];
+
+    const wb=XLSX.utils.book_new();
+    const ws=XLSX.utils.aoa_to_sheet(plainData);
+
+    // Now patch each hyperlink cell with both display value and .l link object
+    dataRows.forEach((row,dataRowIdx)=>{
+      const wsRowIdx=dataRowIdx+1; // +1 for header row
+      hyperlinkColIndices.forEach(colIdx=>{
+        const rawCell=String(row[colIdx]||'');
+        const url=extractUrl(rawCell)||( rawCell.startsWith('http')?rawCell:'' );
+        const displayName=extractName(rawCell)||url;
+        if(!url)return;
+        const cellRef=XLSX.utils.encode_cell({r:wsRowIdx,c:colIdx});
+        // Ensure cell exists with string type
+        ws[cellRef]={t:'s', v:displayName, l:{Target:url}};
       });
     });
 
     XLSX.utils.book_append_sheet(wb,ws,'Leads');
-    XLSX.writeFile(wb,`TAW_Leads_${session.region.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+    // bookSST:false and cellStyles:true are required for .l hyperlinks to survive writeFile
+    XLSX.writeFile(wb,`TAW_Leads_${session.region.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`,{bookSST:false,cellStyles:true});
     showToast('Download started!');
   }catch(e){
     showToast('Download error: '+e.message,'err');
