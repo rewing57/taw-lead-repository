@@ -690,13 +690,13 @@ function renderCards(){
         </div>`;
       }
       lead.connections.forEach(c=>{
-        const salesNavUrl=c.salesNavUrl;
+        const salesNavUrl=c.salesNavUrl||c.linkedInUrl;
         const linkedInUrl=c.linkedInUrl;
         const nameHtml2=salesNavUrl
-          ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click for Sales Navigator Profile">${esc(c.name)}</a>`
+          ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click to open Sales Navigator profile">${esc(c.name)}</a>`
           : `<span class="connection-name">${esc(c.name)}</span>`;
         const inBadge=linkedInUrl
-          ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Open LinkedIn Profile">in</a>`
+          ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Click to open LinkedIn profile">in</a>`
           : '';
         items+=`<div class="connection-item">${nameHtml2}${inBadge}</div>`;
       });
