@@ -51,6 +51,21 @@
     .topbar-title{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;line-height:1.2;}
     .region-badge{font-family:'DM Mono',monospace;font-size:11px;background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);padding:3px 10px;border-radius:20px;}
     .topbar-right{display:flex;align-items:center;gap:8px;}
+    .topbar-user{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);margin-right:4px;}
+    .topbar-version{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,0.06);border:1px solid var(--border);padding:2px 7px;border-radius:3px;}
+
+    /* checklist dropdown */
+    .checklist-wrap{position:relative;}
+    .checklist-trigger{background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:border-color 0.15s;}
+    .checklist-trigger:hover{border-color:var(--border3);}
+    .checklist-trigger.open{border-color:var(--gold);}
+    .checklist-arrow{font-size:10px;color:var(--text3);flex-shrink:0;}
+    .checklist-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius);z-index:100;max-height:220px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+    .checklist-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:background 0.1s;font-size:13px;color:var(--text2);}
+    .checklist-item:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+    .checklist-item input[type=checkbox]{accent-color:var(--gold);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
+    .checklist-item.checked{color:var(--text);}
+    .checklist-locked{background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text3);font-family:'DM Mono',monospace;cursor:default;}
     .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 80px;}
 
     /* ── FILTERS ── */
@@ -204,6 +219,10 @@
       </div>
       <div class="region-badge" id="regionBadge">—</div>
     </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="topbar-user" id="topbarUser"></span>
+      <span class="topbar-version">v5f</span>
+    </div>
     <div class="topbar-right">
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
       <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
@@ -230,11 +249,27 @@
       </div>
       <div class="filter-group">
         <div class="filter-label">Region</div>
-        <input class="filter-input" id="fRegion" type="text" placeholder="Filter by region…" />
+        <div class="checklist-wrap" id="regionFilterWrap">
+          <div class="checklist-trigger" id="regionTrigger" onclick="toggleChecklist('region')">
+            <span id="regionTriggerLabel">All regions</span>
+            <span class="checklist-arrow">▾</span>
+          </div>
+          <div class="checklist-dropdown hidden" id="regionDropdown"></div>
+        </div>
       </div>
       <div class="filter-group">
         <div class="filter-label">CP</div>
-        <input class="filter-input" id="fCP" type="text" placeholder="Filter by CP…" />
+        <div id="cpFilterWrap">
+          <!-- populated by JS — checklist for admin, locked display for CP -->
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Date From</div>
+        <input class="filter-input" id="fDateFrom" type="date" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Date To</div>
+        <input class="filter-input" id="fDateTo" type="date" />
       </div>
       <div class="filter-group">
         <div class="filter-label">Source</div>
@@ -327,6 +362,8 @@ let accessToken = null;
 let sortCol = null, sortDir = 1;
 let page = 1;
 const PAGE_SIZE = 100;
+let selectedRegions = new Set();
+let selectedCPs = new Set();
 
 // ══════════════════════════════════════════════
 //  UTILS
@@ -418,7 +455,7 @@ function doLogin(){
 
   // Admin shortcut
   if(user===ADMIN_USER && pass===ADMIN_PASS){
-    session={username:user, region:'ALL', chapter:'Admin'};
+    session={username:user,regions:['ALL'],region:'ALL',chapter:'Admin',fullName:'Admin'};
     sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
     startApp();
     return;
@@ -430,14 +467,22 @@ function doLogin(){
     const headers=rows[0].map(h=>String(h).toLowerCase().trim());
     const uIdx=headers.indexOf('username');
     const pIdx=headers.indexOf('password');
-    const rIdx=headers.indexOf('region');
+    const rIdx=headers.indexOf('regions');
     const cIdx=headers.indexOf('chaptername');
+    const fnIdx=headers.indexOf('full name');
     const match=rows.slice(1).find(r=>
       String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
       String(r[pIdx]||'').trim()===pass
     );
     if(!match){$('loginError').textContent='Incorrect username or password.';return;}
-    session={username:user,region:String(match[rIdx]||'').trim(),chapter:String(match[cIdx]||user).trim()};
+    const regionsArr=String(match[rIdx]||'').split(',').map(r=>r.trim()).filter(Boolean);
+    session={
+      username:user,
+      regions:regionsArr,
+      region:regionsArr.join(', '),
+      chapter:String(match[cIdx]||user).trim(),
+      fullName:String(match[fnIdx]||match[cIdx]||user).trim()
+    };
     sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
     startApp();
   }).catch(e=>{$('loginError').textContent='Login error: '+e.message;})
@@ -452,7 +497,11 @@ $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 async function startApp(){
   $('loginScreen').style.display='none';
   $('app').style.display='block';
-  $('regionBadge').textContent=session.region==='ALL'?'All Regions':session.region;
+  const isAdmin=session.regions[0]==='ALL';
+  $('regionBadge').textContent=isAdmin?'All Regions':session.region;
+  // Set topbar user name
+  const userLabel=isAdmin?'Admin':`${session.fullName}, Chapter President`;
+  $('topbarUser').textContent=userLabel;
   await loadStatusOptions();
   await loadLeads();
 }
@@ -481,15 +530,16 @@ async function loadLeads(){
     const ci={};
     headers.forEach((h,i)=>ci[h]=i);
 
-    // Region filter
+    // Region filter — support multiple regions
     const regionCol=ci['REGION (auto)'];
-    const myRegion=session.region.toLowerCase().trim();
+    const isAdmin=session.regions[0]==='ALL';
+    const myRegions=session.regions.map(r=>r.toLowerCase().trim());
 
     // Store raw rows for download (filtered by region)
     rawRows=rows.slice(1).filter(r=>{
-      if(session.region==='ALL')return true;
+      if(isAdmin)return true;
       const rv=String(r[regionCol]||'').toLowerCase().trim();
-      return rv===myRegion;
+      return myRegions.includes(rv);
     });
 
     // Group by LinkedIn Profile Link (col B index 1)
@@ -521,6 +571,7 @@ async function loadLeads(){
           Email:row[ci['EMAIL']]||row[ci['Email']]||'',
           LinkedInID:row[ci['LinkedIn ID']]||'',
           Status:row[ci['STATUS']]||row[ci['Status']]||'',
+          Date:row[ci['DATE']]||'',
           hasSchool:false,
           hasGroup:false,
           hasKeywords:false,
@@ -573,6 +624,7 @@ async function loadLeads(){
     });
 
     allLeads=Array.from(groups.values());
+    buildFilterChecklists();
     applyFiltersAndRender();
   }catch(e){
     showToast('Error loading leads: '+e.message,'err');
@@ -586,6 +638,106 @@ async function loadLeads(){
 // ══════════════════════════════════════════════
 //  FILTERS
 // ══════════════════════════════════════════════
+// ── BUILD FILTER CHECKLISTS ──
+function buildFilterChecklists(){
+  const isAdmin=session.regions[0]==='ALL';
+
+  // Collect unique regions and CPs from loaded leads
+  const allRegions=[...new Set(allLeads.map(l=>l.Region).filter(Boolean))].sort();
+  const allCPs=[...new Set(allLeads.map(l=>l.CP).filter(Boolean))].sort();
+
+  // REGION checklist
+  const regionDropdown=$('regionDropdown');
+  regionDropdown.innerHTML='';
+  const regionsToShow=isAdmin?allRegions:session.regions;
+  // Pre-select all
+  selectedRegions=new Set(regionsToShow.map(r=>r.toUpperCase()));
+  regionsToShow.forEach(r=>{
+    const item=document.createElement('div');
+    item.className='checklist-item checked';
+    item.innerHTML=`<input type="checkbox" checked value="${r}"> ${r}`;
+    item.querySelector('input').addEventListener('change',e=>{
+      if(e.target.checked)selectedRegions.add(r.toUpperCase());
+      else selectedRegions.delete(r.toUpperCase());
+      updateChecklistLabel('region',selectedRegions,regionsToShow.length);
+      applyFiltersAndRender();
+    });
+    regionDropdown.appendChild(item);
+  });
+  updateChecklistLabel('region',selectedRegions,regionsToShow.length);
+
+  // CP filter
+  const cpWrap=$('cpFilterWrap');
+  cpWrap.innerHTML='';
+  if(isAdmin){
+    // Admin: checklist of all CPs
+    selectedCPs=new Set(allCPs.map(c=>c.toUpperCase()));
+    const trigger=document.createElement('div');
+    trigger.className='checklist-trigger';
+    trigger.id='cpTrigger';
+    trigger.innerHTML=`<span id="cpTriggerLabel">All CPs</span><span class="checklist-arrow">▾</span>`;
+    trigger.onclick=()=>toggleChecklist('cp');
+    const dropdown=document.createElement('div');
+    dropdown.className='checklist-dropdown hidden';
+    dropdown.id='cpDropdown';
+    allCPs.forEach(cp=>{
+      const item=document.createElement('div');
+      item.className='checklist-item checked';
+      item.innerHTML=`<input type="checkbox" checked value="${cp}"> ${cp}`;
+      item.querySelector('input').addEventListener('change',e=>{
+        if(e.target.checked)selectedCPs.add(cp.toUpperCase());
+        else selectedCPs.delete(cp.toUpperCase());
+        updateChecklistLabel('cp',selectedCPs,allCPs.length);
+        applyFiltersAndRender();
+      });
+      dropdown.appendChild(item);
+    });
+    cpWrap.appendChild(trigger);
+    cpWrap.appendChild(dropdown);
+    updateChecklistLabel('cp',selectedCPs,allCPs.length);
+  } else {
+    // Non-admin: locked to their own CP
+    selectedCPs=new Set([session.chapter.toUpperCase()]);
+    const locked=document.createElement('div');
+    locked.className='checklist-locked';
+    locked.textContent=session.chapter;
+    cpWrap.appendChild(locked);
+  }
+}
+
+function updateChecklistLabel(type,selected,total){
+  const labelEl=$(type==='region'?'regionTriggerLabel':'cpTriggerLabel');
+  if(!labelEl)return;
+  if(selected.size===0)labelEl.textContent='None selected';
+  else if(selected.size===total)labelEl.textContent=type==='region'?'All regions':'All CPs';
+  else labelEl.textContent=`${selected.size} selected`;
+}
+
+function toggleChecklist(type){
+  const trigger=$(type==='region'?'regionTrigger':'cpTrigger');
+  const dropdown=$(type==='region'?'regionDropdown':'cpDropdown');
+  if(!trigger||!dropdown)return;
+  const isOpen=!dropdown.classList.contains('hidden');
+  // Close all dropdowns first
+  ['regionDropdown','cpDropdown'].forEach(id=>{
+    const d=$(id);if(d)d.classList.add('hidden');
+  });
+  ['regionTrigger','cpTrigger'].forEach(id=>{
+    const t=$(id);if(t)t.classList.remove('open');
+  });
+  if(!isOpen){
+    dropdown.classList.remove('hidden');
+    trigger.classList.add('open');
+  }
+}
+// Close dropdowns when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.checklist-wrap')&&!e.target.closest('#cpFilterWrap')){
+    ['regionDropdown','cpDropdown'].forEach(id=>{const d=$(id);if(d)d.classList.add('hidden');});
+    ['regionTrigger','cpTrigger'].forEach(id=>{const t=$(id);if(t)t.classList.remove('open');});
+  }
+});
+
 function applyFiltersAndRender(){
   const fComp=$('fCompany').value.toLowerCase().trim();
   const fRole=$('fRole').value.toLowerCase().trim();
@@ -593,8 +745,9 @@ function applyFiltersAndRender(){
   const fChamp=$('fChampion').value.toLowerCase().trim();
   const fSrc=$('fSource').value.toLowerCase().trim();
   const fStat=$('fStatus').value.toLowerCase().trim();
-  const fRegion=$('fRegion').value.toLowerCase().trim();
-  const fCP=$('fCP').value.toLowerCase().trim();
+  const fDateFrom=$('fDateFrom').value; // YYYY-MM-DD
+  const fDateTo=$('fDateTo').value;
+  const isAdmin=session.regions[0]==='ALL';
 
   filteredLeads=allLeads.filter(r=>{
     if(fComp&&!String(r.Company||'').toLowerCase().includes(fComp))return false;
@@ -612,8 +765,18 @@ function applyFiltersAndRender(){
       if(count<2)return false;
     }
     if(fStat&&!String(r.Status||'').toLowerCase().includes(fStat))return false;
-    if(fRegion&&!String(r.Region||'').toLowerCase().includes(fRegion))return false;
-    if(fCP&&!String(r.CP||'').toLowerCase().includes(fCP))return false;
+    // Region checklist filter
+    if(selectedRegions.size>0&&r.Region&&!selectedRegions.has(r.Region.toUpperCase()))return false;
+    // CP checklist filter
+    if(selectedCPs.size>0&&r.CP&&!selectedCPs.has(r.CP.toUpperCase()))return false;
+    // Date range filter
+    if(fDateFrom||fDateTo){
+      const d=parseDate(r.Date);
+      if(d){
+        if(fDateFrom&&d<new Date(fDateFrom+'T00:00:00'))return false;
+        if(fDateTo&&d>new Date(fDateTo+'T23:59:59'))return false;
+      }
+    }
     return true;
   });
 
@@ -621,14 +784,27 @@ function applyFiltersAndRender(){
   renderCards();
 }
 
-['fCompany','fRole','fLocation','fChampion','fSource','fStatus','fRegion','fCP'].forEach(id=>{
-  $(id).addEventListener('input',applyFiltersAndRender);
-  $(id).addEventListener('change',applyFiltersAndRender);
+function parseDate(str){
+  if(!str)return null;
+  // Handle MM/DD/YYYY
+  const m=String(str).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return new Date(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T00:00:00`);
+  // Handle YYYY-MM-DD
+  if(String(str).match(/^\d{4}-\d{2}-\d{2}$/))return new Date(str+'T00:00:00');
+  return null;
+}
+
+['fCompany','fRole','fLocation','fChampion','fSource','fStatus','fDateFrom','fDateTo'].forEach(id=>{
+  const el=$(id); if(!el)return;
+  el.addEventListener('input',applyFiltersAndRender);
+  el.addEventListener('change',applyFiltersAndRender);
 });
 $('btnClearFilters').addEventListener('click',()=>{
-  ['fCompany','fRole','fLocation','fChampion','fRegion','fCP'].forEach(id=>$(id).value='');
+  ['fCompany','fRole','fLocation','fChampion','fDateFrom','fDateTo'].forEach(id=>{const el=$(id);if(el)el.value='';});
   $('fSource').value='';
   $('fStatus').value='';
+  // Reset checklists to all selected
+  buildFilterChecklists();
   applyFiltersAndRender();
 });
 
