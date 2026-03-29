@@ -51,7 +51,7 @@
     .topbar-title{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;line-height:1.2;}
     .region-badge{font-family:'DM Mono',monospace;font-size:11px;background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);padding:3px 10px;border-radius:20px;}
     .topbar-right{display:flex;align-items:center;gap:8px;}
-    .topbar-user{font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);margin-right:4px;}
+    .topbar-user{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-right:4px;}
     .topbar-version{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,0.06);border:1px solid var(--border);padding:2px 7px;border-radius:3px;}
 
     /* checklist dropdown */
@@ -85,20 +85,20 @@
     .cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 
     /* ── LEAD CARD ── */
-    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:280px 1fr auto;grid-template-rows:auto;}
+    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:320px 1fr auto;grid-template-rows:auto;}
     .lead-card:hover{border-color:var(--border3);box-shadow:0 2px 16px rgba(0,0,0,0.25);}
 
     /* left column — identity */
     .card-header{padding:16px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-start;}
-    .card-name{font-family:'Fraunces',serif;font-size:1.25rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:5px;}
+    .card-name{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:5px;}
     .card-name a{color:var(--text);text-decoration:none;border-bottom:1px solid rgba(238,242,232,0.15);transition:color 0.15s,border-color 0.15s;}
     .card-name a:hover{color:var(--gold2);border-color:var(--gold2);}
     .card-linkedin{margin-bottom:4px;}
     .card-linkedin a{font-family:'DM Mono',monospace;font-size:11px;color:var(--green2);text-decoration:none;opacity:0.8;transition:opacity 0.15s;}
     .card-linkedin a:hover{opacity:1;color:var(--gold2);}
-    .card-role{font-size:13px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
-    .card-company{font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;}
-    .card-location{font-size:11px;color:var(--text3);margin-top:7px;font-family:'DM Mono',monospace;line-height:1.5;}
+    .card-role{font-size:14px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
+    .card-company{font-size:13px;color:var(--text3);font-family:'DM Mono',monospace;}
+    .card-location{font-size:12px;color:var(--text3);margin-top:7px;font-family:'DM Mono',monospace;line-height:1.5;}
 
     /* source badges */
     .source-badges{display:flex;gap:5px;flex-wrap:wrap;}
@@ -221,7 +221,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span class="topbar-user" id="topbarUser"></span>
-      <span class="topbar-version">v5f</span>
+      <span class="topbar-version">v6</span>
     </div>
     <div class="topbar-right">
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
@@ -250,7 +250,7 @@
       <div class="filter-group">
         <div class="filter-label">Region</div>
         <div class="checklist-wrap" id="regionFilterWrap">
-          <div class="checklist-trigger" id="regionTrigger" onclick="toggleChecklist('region')">
+          <div class="checklist-trigger" id="regionTrigger" onclick="event.stopPropagation();toggleChecklist('region')">
             <span id="regionTriggerLabel">All regions</span>
             <span class="checklist-arrow">▾</span>
           </div>
@@ -646,57 +646,76 @@ function buildFilterChecklists(){
   const allRegions=[...new Set(allLeads.map(l=>l.Region).filter(Boolean))].sort();
   const allCPs=[...new Set(allLeads.map(l=>l.CP).filter(Boolean))].sort();
 
-  // REGION checklist
-  const regionDropdown=$('regionDropdown');
-  regionDropdown.innerHTML='';
-  const regionsToShow=isAdmin?allRegions:session.regions;
-  // Pre-select all
-  selectedRegions=new Set(regionsToShow.map(r=>r.toUpperCase()));
-  regionsToShow.forEach(r=>{
-    const item=document.createElement('div');
-    item.className='checklist-item checked';
-    item.innerHTML=`<input type="checkbox" checked value="${r}"> ${r}`;
-    item.querySelector('input').addEventListener('change',e=>{
-      if(e.target.checked)selectedRegions.add(r.toUpperCase());
-      else selectedRegions.delete(r.toUpperCase());
-      updateChecklistLabel('region',selectedRegions,regionsToShow.length);
+  // Helper: build a checklist with Select/Unselect All
+  function buildChecklist(containerId, items, selectedSet, onChangeFn, labelType, total){
+    const container=$(containerId);
+    container.innerHTML='';
+    // Select All / Unselect All row
+    const allRow=document.createElement('div');
+    allRow.style.cssText='display:flex;gap:8px;padding:6px 12px;border-bottom:1px solid var(--border);';
+    const selAll=document.createElement('button');
+    selAll.textContent='Select All';
+    selAll.style.cssText="background:none;border:none;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;padding:0;";
+    const unselAll=document.createElement('button');
+    unselAll.textContent='Unselect All';
+    unselAll.style.cssText="background:none;border:none;color:var(--text3);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;padding:0;";
+    selAll.onclick=()=>{
+      items.forEach(v=>selectedSet.add(v.toUpperCase()));
+      container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=true);
+      container.querySelectorAll('.checklist-item').forEach(el=>el.classList.add('checked'));
+      updateChecklistLabel(labelType,selectedSet,total);
       applyFiltersAndRender();
+    };
+    unselAll.onclick=()=>{
+      selectedSet.clear();
+      container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+      container.querySelectorAll('.checklist-item').forEach(el=>el.classList.remove('checked'));
+      updateChecklistLabel(labelType,selectedSet,total);
+      applyFiltersAndRender();
+    };
+    allRow.appendChild(selAll);
+    allRow.appendChild(unselAll);
+    container.appendChild(allRow);
+    // Items
+    items.forEach(v=>{
+      const item=document.createElement('div');
+      item.className='checklist-item checked';
+      item.innerHTML=`<input type="checkbox" checked value="${v}"> ${v}`;
+      item.querySelector('input').addEventListener('change',e=>{
+        if(e.target.checked){selectedSet.add(v.toUpperCase());item.classList.add('checked');}
+        else{selectedSet.delete(v.toUpperCase());item.classList.remove('checked');}
+        updateChecklistLabel(labelType,selectedSet,total);
+        onChangeFn();
+      });
+      container.appendChild(item);
     });
-    regionDropdown.appendChild(item);
-  });
+  }
+
+  // REGION checklist
+  const regionsToShow=isAdmin?allRegions:session.regions;
+  selectedRegions=new Set(regionsToShow.map(r=>r.toUpperCase()));
+  buildChecklist('regionDropdown',regionsToShow,selectedRegions,applyFiltersAndRender,'region',regionsToShow.length);
   updateChecklistLabel('region',selectedRegions,regionsToShow.length);
 
   // CP filter
   const cpWrap=$('cpFilterWrap');
   cpWrap.innerHTML='';
   if(isAdmin){
-    // Admin: checklist of all CPs
     selectedCPs=new Set(allCPs.map(c=>c.toUpperCase()));
+    // Build trigger button
     const trigger=document.createElement('div');
     trigger.className='checklist-trigger';
     trigger.id='cpTrigger';
     trigger.innerHTML=`<span id="cpTriggerLabel">All CPs</span><span class="checklist-arrow">▾</span>`;
-    trigger.onclick=()=>toggleChecklist('cp');
+    trigger.onclick=(e)=>{e.stopPropagation();toggleChecklist('cp');};
     const dropdown=document.createElement('div');
     dropdown.className='checklist-dropdown hidden';
     dropdown.id='cpDropdown';
-    allCPs.forEach(cp=>{
-      const item=document.createElement('div');
-      item.className='checklist-item checked';
-      item.innerHTML=`<input type="checkbox" checked value="${cp}"> ${cp}`;
-      item.querySelector('input').addEventListener('change',e=>{
-        if(e.target.checked)selectedCPs.add(cp.toUpperCase());
-        else selectedCPs.delete(cp.toUpperCase());
-        updateChecklistLabel('cp',selectedCPs,allCPs.length);
-        applyFiltersAndRender();
-      });
-      dropdown.appendChild(item);
-    });
     cpWrap.appendChild(trigger);
     cpWrap.appendChild(dropdown);
+    buildChecklist('cpDropdown',allCPs,selectedCPs,applyFiltersAndRender,'cp',allCPs.length);
     updateChecklistLabel('cp',selectedCPs,allCPs.length);
   } else {
-    // Non-admin: locked to their own CP
     selectedCPs=new Set([session.chapter.toUpperCase()]);
     const locked=document.createElement('div');
     locked.className='checklist-locked';
@@ -850,8 +869,8 @@ function renderCards(){
 
     // Region / CP chips with labels
     let metaHtml='';
-    if(lead.Region) metaHtml+=`<div class="meta-item"><span class="meta-label">Region</span><span class="chip">${esc(lead.Region)}</span></div>`;
     if(lead.CP)     metaHtml+=`<div class="meta-item"><span class="meta-label">CP</span><span class="chip chip-cp">${esc(lead.CP)}</span></div>`;
+    if(lead.Region) metaHtml+=`<div class="meta-item"><span class="meta-label">Region</span><span class="chip">${esc(lead.Region)}</span></div>`;
 
     // Connections section
     let connectionsHtml='';
@@ -1019,14 +1038,15 @@ $('btnDownload').addEventListener('click',async()=>{
     const profileLinkIdx=1; // col B
 
     // Filter raw rows to only those belonging to filtered leads
-    const myRegion=session.region.toLowerCase().trim();
+    const isAdminDlFilter=session.regions&&session.regions[0]==='ALL';
+    const myRegionsDl=(session.regions||[session.region||'']).map(r=>r.toLowerCase().trim());
     const dataRows=formulaRows.slice(1).filter(row=>{
       // Region filter
-      if(session.region!=='ALL'){
+      if(!isAdminDlFilter){
         const regionIdx=headers.findIndex(h=>String(h).trim()==='REGION (auto)');
         if(regionIdx>-1){
           const rv=String(row[regionIdx]||'').toLowerCase().trim();
-          if(rv!==myRegion)return false;
+          if(!myRegionsDl.includes(rv))return false;
         }
       }
       // Lead filter — match by LinkedIn profile URL
@@ -1035,40 +1055,48 @@ $('btnDownload').addEventListener('click',async()=>{
       return filteredKeys.has(profileUrl)||filteredKeys.has(`__nokey_${formulaRows.indexOf(row)-1}`);
     });
 
-    // Build worksheet data — plain text values for aoa_to_sheet
-    // then patch hyperlink cells individually after
-    const hyperlinkColIndices=[0,1,9,10,11]; // A,B,J,K,L (0-indexed)
+    // Find DATE column index to force text formatting
+    const dateColIdx=headers.findIndex(h=>String(h).trim()==='DATE');
 
-    // Build plain-value rows (strip =HYPERLINK() formulas to display text)
-    const plainData=[headers,...dataRows.map(row=>
+    // Build worksheet cell by cell to control types
+    const wb=XLSX.utils.book_new();
+    const wsData=[headers,...dataRows];
+    const ws=XLSX.utils.aoa_to_sheet(wsData.map((row,ri)=>
       row.map((cell,ci)=>{
-        if(hyperlinkColIndices.includes(ci)){
-          return extractName(String(cell||''))||extractUrl(String(cell||''))||String(cell||'');
-        }
+        // Force DATE column to text to prevent serial number conversion
+        if(ri>0 && ci===dateColIdx) return {t:'s',v:String(cell||'')};
         return cell||'';
       })
-    )];
+    ));
 
-    const wb=XLSX.utils.book_new();
-    const ws=XLSX.utils.aoa_to_sheet(plainData);
-
-    // Now patch each hyperlink cell with both display value and .l link object
+    // Patch hyperlink columns: A(0), B(1), J(9), K(10), L(11)
+    const hyperlinkColIndices=[0,1,9,10,11];
     dataRows.forEach((row,dataRowIdx)=>{
-      const wsRowIdx=dataRowIdx+1; // +1 for header row
+      const wsRowIdx=dataRowIdx+1;
       hyperlinkColIndices.forEach(colIdx=>{
         const rawCell=String(row[colIdx]||'');
-        const url=extractUrl(rawCell)||( rawCell.startsWith('http')?rawCell:'' );
+        const url=extractUrl(rawCell)||(rawCell.startsWith('http')?rawCell:'');
         const displayName=extractName(rawCell)||url;
         if(!url)return;
         const cellRef=XLSX.utils.encode_cell({r:wsRowIdx,c:colIdx});
-        // Ensure cell exists with string type
-        ws[cellRef]={t:'s', v:displayName, l:{Target:url}};
+        ws[cellRef]={t:'s',v:displayName,l:{Target:url}};
       });
+      // Also force DATE cell to text in the patched sheet
+      if(dateColIdx>-1){
+        const dateCellRef=XLSX.utils.encode_cell({r:wsRowIdx,c:dateColIdx});
+        const dateVal=String(row[dateColIdx]||'');
+        if(dateVal) ws[dateCellRef]={t:'s',v:dateVal};
+      }
     });
 
+    // Build filename from session context
+    const isAdminDl=session.regions&&session.regions[0]==='ALL';
+    const fnPart=isAdminDl?'ALL':session.chapter||session.region||'';
+    const today=new Date().toISOString().slice(0,10);
+    const filename=`TAW_Leads_${fnPart.replace(/[\s,/]+/g,'_')}_${today}.xlsx`;
+
     XLSX.utils.book_append_sheet(wb,ws,'Leads');
-    // bookSST:false and cellStyles:true are required for .l hyperlinks to survive writeFile
-    XLSX.writeFile(wb,`TAW_Leads_${session.region.replace(/\s+/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`,{bookSST:false,cellStyles:true});
+    XLSX.writeFile(wb,filename,{bookSST:false,cellStyles:true});
     showToast('Download started!');
   }catch(e){
     showToast('Download error: '+e.message,'err');
