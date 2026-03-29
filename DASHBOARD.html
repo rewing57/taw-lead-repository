@@ -86,7 +86,7 @@
     .card-location{font-size:11px;color:var(--text3);margin-top:7px;font-family:'DM Mono',monospace;line-height:1.5;}
 
     /* source badges */
-    .source-badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:10px;}
+    .source-badges{display:flex;gap:5px;flex-wrap:wrap;}
     .badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:0.05em;font-weight:500;cursor:default;position:relative;}
     .badge[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1.5px solid var(--border2);color:var(--text2);font-size:11px;white-space:nowrap;padding:5px 10px;border-radius:4px;z-index:10;pointer-events:none;font-family:'DM Sans',sans-serif;letter-spacing:0;font-weight:400;}
     .badge[title]:hover::before{content:'';position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--border2);z-index:10;pointer-events:none;}
@@ -117,11 +117,20 @@
     .status-saved{color:var(--success)!important;border-color:rgba(110,231,183,0.4)!important;}
 
     /* region/cp chip */
-    .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px;}
+    .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
     .meta-item{display:flex;align-items:center;gap:4px;}
-    .meta-label{font-family:'DM Mono',monospace;font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text4);}
-    .chip{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;}
+    .meta-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text4);}
+    .chip{font-family:'DM Mono',monospace;font-size:11px;padding:4px 10px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;}
     .chip-cp{background:rgba(0,90,126,0.3);border-color:rgba(110,231,183,0.25);color:var(--green2);}
+
+    /* sources label + badges */
+    .sources-section{margin-top:8px;}
+    .sources-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
+    .source-badges{display:flex;gap:5px;flex-wrap:wrap;}
+
+    /* linkedin in-badge */
+    .in-badge{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;background:#0a66c2;color:#fff;font-family:'DM Sans',sans-serif;font-size:10px;font-weight:700;border-radius:3px;text-decoration:none;flex-shrink:0;transition:opacity 0.15s;margin-left:5px;}
+    .in-badge:hover{opacity:0.85;}
 
     /* responsive — stack on small screens */
     @media(max-width:900px){
@@ -645,23 +654,23 @@ function renderCards(){
     const card=document.createElement('div');
     card.className='lead-card';
 
-    // Source badges with hover tooltips
+    // Source badges with hover tooltips — wrapped with SOURCES label
     let badges='';
     if(lead.hasSchool) badges+=`<span class="badge badge-school" title="Attended a solid Christian college">Christian College</span>`;
     if(lead.hasGroup)  badges+=`<span class="badge badge-group" title="Member of an overt Christian LinkedIn group">Christian Group</span>`;
     if(lead.hasKeywords) badges+=`<span class="badge badge-keywords" title="Profile has overt Christian wording">Keywords</span>`;
+    const sourcesHtml=badges?`<div class="sources-section"><div class="sources-label">Sources</div><div class="source-badges">${badges}</div></div>`:'';
 
-    // Name with Sales Nav link and tooltip
+    // Name: Sales Nav link + LinkedIn in-badge
+    const linkedInBadge=lead.LinkedInProfileUrl
+      ?`<a class="in-badge" href="${esc(lead.LinkedInProfileUrl)}" target="_blank" rel="noopener" title="Open LinkedIn Profile">in</a>`
+      :'';
     const nameHtml=lead.NameUrl
-      ? `<a href="${esc(lead.NameUrl)}" target="_blank" rel="noopener" title="Click for Sales Navigator Profile">${esc(lead.Name||'Unknown')}</a>`
+      ? `<a href="${esc(lead.NameUrl)}" target="_blank" rel="noopener" title="Click for Sales Navigator Profile">${esc(lead.Name||'Unknown')}</a>${linkedInBadge}`
       : esc(lead.Name||'Unknown');
 
-    // LinkedIn profile link (col B — raw linkedin.com URL)
-    const linkedInHtml=lead.LinkedInProfileUrl && !lead.LinkedInProfileUrl.includes('sales/lead')
-      ? `<div class="card-linkedin"><a href="${esc(lead.LinkedInProfileUrl)}" target="_blank" rel="noopener">LinkedIn Profile →</a></div>`
-      : lead.LinkedInProfileUrl
-        ? `<div class="card-linkedin"><a href="${esc(lead.LinkedInProfileUrl)}" target="_blank" rel="noopener">Sales Nav Profile →</a></div>`
-        : '';
+    // LinkedIn profile link — now shown as in-badge inline with name, not separate line
+    const linkedInHtml='';
 
     // Region / CP chips with labels
     let metaHtml='';
@@ -681,11 +690,15 @@ function renderCards(){
         </div>`;
       }
       lead.connections.forEach(c=>{
-        const url=c.linkedInUrl||c.salesNavUrl;
-        const nameHtml2=url
-          ? `<a class="connection-link" href="${esc(url)}" target="_blank" rel="noopener">${esc(c.name)}</a>`
+        const salesNavUrl=c.salesNavUrl;
+        const linkedInUrl=c.linkedInUrl;
+        const nameHtml2=salesNavUrl
+          ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click for Sales Navigator Profile">${esc(c.name)}</a>`
           : `<span class="connection-name">${esc(c.name)}</span>`;
-        items+=`<div class="connection-item">${nameHtml2}</div>`;
+        const inBadge=linkedInUrl
+          ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Open LinkedIn Profile">in</a>`
+          : '';
+        items+=`<div class="connection-item">${nameHtml2}${inBadge}</div>`;
       });
       connectionsHtml=`
         <div class="connections-section">
@@ -708,7 +721,7 @@ function renderCards(){
         <div class="card-role">${esc(lead.Role||'—')}</div>
         <div class="card-company">${esc(lead.Company||'—')}</div>
         <div class="card-location">${esc(lead.Location||'—')}${lead.State?' · '+esc(lead.State):''}</div>
-        <div class="source-badges">${badges}</div>
+        ${sourcesHtml}
       </div>
       <div class="card-body">
         <div class="card-meta">${metaHtml}</div>
