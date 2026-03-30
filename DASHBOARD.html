@@ -40,8 +40,6 @@
     .btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border2);}
     .btn-ghost:hover{color:var(--text);border-color:var(--border3);}
     .btn-sm{font-size:12px;padding:5px 11px;}
-    .btn-flag{background:transparent;color:var(--text3);border:1px solid var(--border);font-size:11px;padding:4px 8px;font-family:'DM Mono',monospace;border-radius:4px;}
-    .btn-flag:hover{color:var(--gold);border-color:rgba(200,168,75,0.4);}
 
     /* ── APP SHELL ── */
     #app{display:none;position:relative;z-index:1;}
@@ -87,7 +85,7 @@
     .cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 
     /* ── LEAD CARD ── */
-    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:1fr 190px 230px;}
+    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:minmax(200px,360px) 175px 1fr;}
     .lead-card:hover{border-color:var(--border3);box-shadow:0 2px 16px rgba(0,0,0,0.25);}
 
     /* left column — identity */
@@ -95,9 +93,9 @@
     .card-name{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px;}
     .card-name a{color:var(--text);text-decoration:none;border-bottom:1px solid rgba(238,242,232,0.15);transition:color 0.15s,border-color 0.15s;}
     .card-name a:hover{color:var(--gold2);border-color:var(--gold2);}
-    .card-role{font-size:16px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
-    .card-company{font-size:15px;color:var(--text3);font-family:'DM Mono',monospace;}
-    .card-location{font-size:13px;color:var(--text3);margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6;}
+    .card-role{font-size:17px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
+    .card-company{font-size:16px;color:var(--text3);font-family:'DM Mono',monospace;}
+    .card-location{font-size:14px;color:var(--text3);margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6;}
 
     /* middle column — CP / Region / Sources */
     .card-mid{padding:16px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:14px;justify-content:center;}
@@ -115,21 +113,20 @@
     .badge-group{background:var(--green3);color:var(--green2);border:1px solid rgba(110,231,183,0.3);}
     .badge-keywords{background:var(--blue2);color:var(--blue);border:1px solid rgba(74,142,204,0.3);}
 
-    /* right column — connections */
-    .card-body{padding:16px 18px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:8px;}
-    .connections-section{width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
-    .connections-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:2px;}
-    .connections-list{display:flex;flex-direction:column;gap:7px;align-items:flex-end;width:100%;}
-    .connection-item{display:flex;align-items:center;justify-content:flex-end;}
-    .connection-name{color:var(--text2);font-size:13px;}
-    .connection-link{color:var(--green2);text-decoration:none;font-size:13px;white-space:nowrap;background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:4px;transition:all 0.15s;}
-    .connection-link:hover{color:var(--gold2);border-color:rgba(232,192,125,0.3);}
-    .mutual-link{display:inline-flex;align-items:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 10px;border-radius:4px;transition:all 0.15s;}
+    /* right column — connections 2-col grid */
+    .card-body{padding:14px 16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+    .connections-section{width:100%;display:flex;flex-direction:column;gap:8px;}
+    .connections-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);text-align:right;}
+    .connections-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;}
+    .connections-grid.one-col{grid-template-columns:1fr;}
+    .mutual-full{grid-column:1/-1;}
+    .mutual-link{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 10px;border-radius:4px;transition:all 0.15s;width:100%;}
     .mutual-link:hover{background:rgba(232,192,125,0.25);color:var(--gold2);}
-    .no-connections{font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;}
-    .card-footer{display:flex;justify-content:flex-end;margin-top:auto;width:100%;}
-    .btn-flag{background:transparent;color:var(--text3);border:1px solid var(--border);font-size:11px;padding:4px 8px;font-family:'DM Mono',monospace;border-radius:4px;cursor:pointer;}
-    .btn-flag:hover{color:var(--gold);border-color:rgba(200,168,75,0.4);}
+    .connection-item{display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+    .connection-name{color:var(--text2);font-size:13px;}
+    .connection-link{color:var(--green2);text-decoration:none;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--bg3);border:1px solid var(--border);padding:4px 9px;border-radius:4px;transition:all 0.15s;flex:1;min-width:0;}
+    .connection-link:hover{color:var(--gold2);border-color:rgba(232,192,125,0.3);}
+    .no-connections{font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;text-align:right;}
 
     /* linkedin in-badge */
     .in-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#0a66c2;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;border-radius:3px;text-decoration:none;flex-shrink:0;transition:opacity 0.15s;margin-left:6px;}
@@ -160,19 +157,6 @@
     .page-btn:hover:not(:disabled){border-color:var(--border3);color:var(--text);}
     .page-btn.active{background:var(--gold3);border-color:var(--gold);color:var(--gold);}
     .page-btn:disabled{opacity:0.3;cursor:not-allowed;}
-
-    /* ── MODAL ── */
-    .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
-    .modal{background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius3);padding:32px;width:100%;max-width:480px;}
-    .modal-title{font-family:'Fraunces',serif;font-size:1.4rem;font-weight:700;margin-bottom:4px;}
-    .modal-sub{font-size:13px;color:var(--text2);margin-bottom:24px;}
-    .modal-lead-name{color:var(--gold2);font-weight:600;}
-    .field-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;display:block;}
-    .modal-select{width:100%;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;margin-bottom:16px;}
-    .modal-select:focus{border-color:var(--gold);}
-    .modal-textarea{width:100%;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:90px;margin-bottom:20px;}
-    .modal-textarea:focus{border-color:var(--gold);}
-    .modal-actions{display:flex;justify-content:flex-end;gap:10px;}
 
     /* ── MISC ── */
     .hidden{display:none!important;}
@@ -216,13 +200,11 @@
         <div class="topbar-eyebrow">Truth at Work</div>
         <div class="topbar-title">Lead Dashboard</div>
       </div>
-      <div class="region-badge" id="regionBadge">—</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:8px;">
-      <span class="topbar-user" id="topbarUser"></span>
-      <span class="topbar-version">v6.3</span>
     </div>
     <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <span class="region-badge" id="regionBadge">—</span>
+      <span class="topbar-version">v6.4</span>
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
       <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
     </div>
@@ -317,29 +299,6 @@
   </div>
 </div>
 
-<!-- FLAG MODAL -->
-<div class="modal-overlay hidden" id="flagModal">
-  <div class="modal">
-    <div class="modal-title">Flag Lead for Review</div>
-    <div class="modal-sub">Flagging <span class="modal-lead-name" id="flagLeadName"></span></div>
-    <label class="field-label">Reason</label>
-    <select class="modal-select" id="flagReason">
-      <option value="">Select a reason…</option>
-      <option value="Data outdated">Data outdated</option>
-      <option value="Wrong company">Wrong company</option>
-      <option value="Person moved">Person moved</option>
-      <option value="Remove from list">Remove from list</option>
-      <option value="Already contacted">Already contacted</option>
-      <option value="Other">Other</option>
-    </select>
-    <label class="field-label">Notes (optional)</label>
-    <textarea class="modal-textarea" id="flagNote" placeholder="Add any details here…"></textarea>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" id="btnFlagCancel">Cancel</button>
-      <button class="btn btn-primary" id="btnFlagSubmit" style="width:auto;padding:8px 20px;">Submit Flag</button>
-    </div>
-  </div>
-</div>
 
 <div class="toast hidden" id="toast"></div>
 
@@ -351,7 +310,6 @@ const SHEET_ID    = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
 const API_KEY     = 'AIzaSyC0BTQBKAnBUzc2LacWDX_K8Xw-HC5ahtE';
 const LEADS_TAB   = 'MEMBER LEADS';
 const REGIONS_TAB = 'Regions';
-const FLAG_TAB    = 'FlaggedFeedback';
 const ADMIN_USER  = 'rewing@truthatwork.org';
 const ADMIN_PASS  = 'g3tL3ad$';
 
@@ -847,36 +805,33 @@ function renderCards(){
     if(lead.hasKeywords) badges+=`<span class="badge badge-keywords" title="Profile has overt Christian wording">Keywords</span>`;
     midHtml+=`<div class="mid-item"><div class="mid-label">Sources</div><div class="source-badges">${badges||'<span style="font-size:11px;color:var(--text4);font-family:\'DM Mono\',monospace;">—</span>'}</div></div>`;
 
-    // Right column: Connections
+    // Right column: Connections 2-col grid
     let connectionsHtml='';
     const hasAnyConnections=lead.MutualConnectionsUrl||lead.connections.length>0;
+    const oneCol=lead.connections.length<=1&&!lead.MutualConnectionsUrl;
     if(hasAnyConnections){
       let items='';
       if(lead.MutualConnectionsUrl){
-        items+=`<div class="connection-item">
-          <a class="mutual-link" href="${esc(lead.MutualConnectionsUrl)}" target="_blank" rel="noopener">
-            ⇌ View All Mutual Connections
-          </a>
-        </div>`;
+        items+=`<div class="mutual-full"><a class="mutual-link" href="${esc(lead.MutualConnectionsUrl)}" target="_blank" rel="noopener">⇌ View All Mutual Connections</a></div>`;
       }
       lead.connections.forEach(c=>{
         const salesNavUrl=c.salesNavUrl||c.linkedInUrl;
         const linkedInUrl=c.linkedInUrl;
-        const nameHtml2=salesNavUrl
+        const nameLink=salesNavUrl
           ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click to open Sales Navigator profile">${esc(c.name)}</a>`
           : `<span class="connection-name">${esc(c.name)}</span>`;
         const inBadge=linkedInUrl
           ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Click to open LinkedIn profile">in</a>`
           : '';
-        items+=`<div class="connection-item">${nameHtml2}${inBadge}</div>`;
+        items+=`<div class="connection-item">${nameLink}${inBadge}</div>`;
       });
       connectionsHtml=`
         <div class="connections-section">
           <div class="connections-label">Mutual Connections</div>
-          <div class="connections-list">${items}</div>
+          <div class="connections-grid${oneCol?' one-col':''}">${items}</div>
         </div>`;
     }else{
-      connectionsHtml=`<div class="connections-section"><div class="connections-label">Mutual Connections</div><span class="no-connections">No named connections available</span></div>`;
+      connectionsHtml=`<div class="connections-section"><div class="connections-label">Mutual Connections</div><div class="no-connections">No named connections available</div></div>`;
     }
 
     card.innerHTML=`
@@ -887,18 +842,8 @@ function renderCards(){
         <div class="card-location">${esc(lead.Location||'—')}${lead.State?' · '+esc(lead.State):''}</div>
       </div>
       <div class="card-mid">${midHtml}</div>
-      <div class="card-body">
-        ${connectionsHtml}
-        <div class="card-footer">
-          <button class="btn-flag" data-name="${esc(lead.Name||'')}">⚑ Flag</button>
-        </div>
-      </div>
+      <div class="card-body">${connectionsHtml}</div>
     `;
-
-    // Flag handler
-    card.querySelector('.btn-flag').addEventListener('click',e=>{
-      openFlagModal(e.currentTarget.dataset.name,lead);
-    });
 
     grid.appendChild(card);
   });
@@ -919,30 +864,6 @@ function renderPagination(total){
   el.innerHTML=html;
 }
 window.goPage=p=>{page=p;renderCards();window.scrollTo(0,0);};
-
-// ══════════════════════════════════════════════
-//  FLAG MODAL
-// ══════════════════════════════════════════════
-let flagTargetLead=null;
-function openFlagModal(name,lead){
-  flagTargetLead=lead;
-  $('flagLeadName').textContent=name;
-  $('flagReason').value='';
-  $('flagNote').value='';
-  $('flagModal').classList.remove('hidden');
-}
-$('btnFlagCancel').addEventListener('click',()=>$('flagModal').classList.add('hidden'));
-$('flagModal').addEventListener('click',e=>{if(e.target===$('flagModal'))$('flagModal').classList.add('hidden');});
-$('btnFlagSubmit').addEventListener('click',async()=>{
-  const reason=$('flagReason').value;
-  const note=$('flagNote').value.trim();
-  if(!reason){showToast('Please select a reason.','err');return;}
-  $('btnFlagSubmit').disabled=true;
-  try{
-    $('flagModal').classList.add('hidden');
-    showToast('Flag noted — contact your admin to log this flag.');
-  }finally{$('btnFlagSubmit').disabled=false;}
-});
 
 // ══════════════════════════════════════════════
 //  DOWNLOAD — hand-built XLSX with real hyperlinks
