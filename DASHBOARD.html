@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en">const nameLink
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -85,7 +85,7 @@
     .cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 
     /* ── LEAD CARD ── */
-    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:minmax(200px,360px) 175px 1fr;}
+    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:minmax(200px,396px) 175px 1fr;}
     .lead-card:hover{border-color:var(--border3);box-shadow:0 2px 16px rgba(0,0,0,0.25);}
 
     /* left column — identity */
@@ -101,7 +101,10 @@
     .card-mid{padding:16px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:14px;justify-content:center;}
     .mid-item{display:flex;flex-direction:column;gap:5px;}
     .mid-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text4);}
-    .chip{font-family:'DM Mono',monospace;font-size:12px;padding:4px 10px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;display:inline-block;}
+
+
+.chip{font-family:'DM Mono',monospace;font-size:12px;padding:4px 10px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;display:inline-block;width:fit-content;}
+
     .chip-cp{background:rgba(0,90,126,0.3);border-color:rgba(110,231,183,0.25);color:var(--green2);}
 
     /* source badges */
@@ -124,7 +127,12 @@
     .mutual-link:hover{background:rgba(232,192,125,0.25);color:var(--gold2);}
     .connection-item{display:flex;align-items:center;gap:4px;justify-content:flex-end;}
     .connection-name{color:var(--text2);font-size:13px;}
-    .connection-link{color:var(--green2);text-decoration:none;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:var(--bg3);border:1px solid var(--border);padding:4px 9px;border-radius:4px;transition:all 0.15s;flex:1;min-width:0;}
+   
+
+.connection-link{color:var(--green2);text-decoration:none;font-size:13px;white-space:nowrap;background:var(--bg3);border:1px solid var(--border);padding:4px 9px;border-radius:4px;transition:all 0.15s;width:auto;}
+
+
+
     .connection-link:hover{color:var(--gold2);border-color:rgba(232,192,125,0.3);}
     .no-connections{font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;text-align:right;}
 
@@ -310,8 +318,7 @@ const SHEET_ID    = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
 const API_KEY     = 'AIzaSyC0BTQBKAnBUzc2LacWDX_K8Xw-HC5ahtE';
 const LEADS_TAB   = 'MEMBER LEADS';
 const REGIONS_TAB = 'Regions';
-const ADMIN_USER  = 'rewing@truthatwork.org';
-const ADMIN_PASS  = 'g3tL3ad$';
+
 
 // ══════════════════════════════════════════════
 //  STATE
@@ -377,13 +384,7 @@ function doLogin(){
   $('loginError').textContent='';
   if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
 
-  // Admin shortcut
-  if(user===ADMIN_USER && pass===ADMIN_PASS){
-    session={username:user,regions:['ALL'],region:'ALL',chapter:'Admin',fullName:'Admin'};
-    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
-    startApp();
-    return;
-  }
+  
 
   $('btnLogin').disabled=true;
   readPublicSheet(REGIONS_TAB).then(rows=>{
@@ -393,20 +394,25 @@ function doLogin(){
     const pIdx=headers.indexOf('password');
     const rIdx=headers.indexOf('regions');
     const cIdx=headers.indexOf('chaptername');
-    const fnIdx=headers.indexOf('full name');
-    const match=rows.slice(1).find(r=>
-      String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
-      String(r[pIdx]||'').trim()===pass
-    );
-    if(!match){$('loginError').textContent='Incorrect username or password.';return;}
-    const regionsArr=String(match[rIdx]||'').split(',').map(r=>r.trim()).filter(Boolean);
-    session={
-      username:user,
-      regions:regionsArr,
-      region:regionsArr.join(', '),
-      chapter:String(match[cIdx]||user).trim(),
-      fullName:String(match[fnIdx]||match[cIdx]||user).trim()
-    };
+
+
+const fnIdx=headers.indexOf('full name');
+const adminIdx=headers.indexOf('admin');
+const match=rows.slice(1).find(r=>
+  String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
+  String(r[pIdx]||'').trim()===pass
+);
+if(!match){$('loginError').textContent='Incorrect username or password.';return;}
+const isAdmin=adminIdx>-1&&String(match[adminIdx]||'').toLowerCase().trim()==='yes';
+const regionsArr=isAdmin?['ALL']:String(match[rIdx]||'').split(',').map(r=>r.trim()).filter(Boolean);
+session={
+  username:user,
+  regions:regionsArr,
+  region:isAdmin?'All Regions':regionsArr.join(', '),
+  chapter:String(match[cIdx]||user).trim(),
+  fullName:String(match[fnIdx]||match[cIdx]||user).trim()
+};
+
     sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
     startApp();
   }).catch(e=>{$('loginError').textContent='Login error: '+e.message;})
@@ -817,9 +823,12 @@ function renderCards(){
       lead.connections.forEach(c=>{
         const salesNavUrl=c.salesNavUrl||c.linkedInUrl;
         const linkedInUrl=c.linkedInUrl;
-        const nameLink=salesNavUrl
-          ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click to open Sales Navigator profile">${esc(c.name)}</a>`
-          : `<span class="connection-name">${esc(c.name)}</span>`;
+        
+	const displayName=c.name.split(',')[0].trim();
+
+	const nameLink=salesNavUrl
+          ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click to open Sales Navigator profile">${esc(displayName)}</a>`
+          : `<span class="connection-name">${esc(displayName)}</span>`;
         const inBadge=linkedInUrl
           ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Click to open LinkedIn profile">in</a>`
           : '';
