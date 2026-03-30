@@ -479,7 +479,7 @@ async function loadLeads(){
           _rowNums:[rawIdx+2], // 1-indexed sheet row (header is row 1, data starts row 2)
           Name:extractName(nameCell),
           NameUrl:extractUrl(nameCell)||profileUrl,
-          LinkedInProfileUrl:profileUrl,
+          LinkedInProfileUrl:'',  // set after LinkedInID is read below
           Role:row[ci['Role']]||'',
           Company:row[ci['Company']]||'',
           Location:row[ci['Location']]||'',
@@ -489,7 +489,11 @@ async function loadLeads(){
           MutualCount:row[ci['# of Mutual Connections']]||'',
           MutualConnectionsUrl:'',  // col K - set below
           Email:row[ci['EMAIL']]||row[ci['Email']]||'',
-          LinkedInID:row[ci['LinkedIn ID']]||'',
+         
+
+	LinkedInID:row[ci['LinkedIn ID']]||'',
+          LinkedInProfileUrl:row[ci['LinkedIn ID']]?`https://www.linkedin.com/in/${row[ci['LinkedIn ID']]}`:'',
+
           Status:row[ci['STATUS']]||row[ci['Status']]||'',
           Date:row[ci['DATE']]||'',
           hasSchool:false,
