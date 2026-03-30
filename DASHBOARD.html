@@ -75,6 +75,8 @@
     .filter-input{background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:100%;transition:border-color 0.15s;}
     .filter-input:focus{border-color:var(--gold);}
     .filter-input::placeholder{color:rgba(240,242,250,0.55);}
+    .filter-input option{background:#005a7e;color:#f0f2fa;}
+    select.filter-input{color:var(--text);}
     .filter-actions{display:flex;gap:8px;align-items:flex-end;}
 
     /* ── COUNT BAR ── */
@@ -221,7 +223,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span class="topbar-user" id="topbarUser"></span>
-      <span class="topbar-version">v6</span>
+      <span class="topbar-version">v6.1</span>
     </div>
     <div class="topbar-right">
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
@@ -259,7 +261,7 @@
       </div>
       <div class="filter-group">
         <div class="filter-label">CP</div>
-        <div id="cpFilterWrap">
+        <div class="checklist-wrap" id="cpFilterWrap">
           <!-- populated by JS — checklist for admin, locked display for CP -->
         </div>
       </div>
@@ -1020,28 +1022,248 @@ $('btnFlagSubmit').addEventListener('click',async()=>{
 });
 
 // ══════════════════════════════════════════════
-//  DOWNLOAD — raw rows with hyperlinks
+//  DOWNLOAD — hand-built XLSX with real hyperlinks
 // ══════════════════════════════════════════════
+
+// Build XLSX as a ZIP manually so hyperlinks actually work in Excel
+function buildXlsxWithHyperlinks(headers, dataRows, hyperlinkColIndices, dateColIdx){
+  // Shared strings table
+  const sst=[];
+  const sstMap={};
+  function si(s){
+    const v=String(s||'');
+    if(sstMap[v]===undefined){sstMap[v]=sst.length;sst.push(v);}
+    return sstMap[v];
+  }
+
+  // Build sheet XML and collect hyperlinks
+  let sheetXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  sheetXml+='<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+  sheetXml+='<sheetData>';
+
+  const rels=[];
+  let rIdCounter=1;
+
+  // Header row
+  sheetXml+='<row r="1">';
+  headers.forEach((h,ci)=>{
+    const col=colName(ci);
+    sheetXml+=`<c r="${col}1" t="s"><v>${si(h)}</v></c>`;
+  });
+  sheetXml+='</row>';
+
+  // Data rows
+  dataRows.forEach((row,ri)=>{
+    const rowNum=ri+2;
+    sheetXml+=`<row r="${rowNum}">`;
+    headers.forEach((h,ci)=>{
+      const col=colName(ci);
+      const rawCell=String(row[ci]||'');
+      const isHyperlink=hyperlinkColIndices.includes(ci);
+      const isDate=ci===dateColIdx;
+
+      if(isHyperlink){
+        const url=extractUrl(rawCell)||(rawCell.startsWith('http')?rawCell:'');
+        const display=extractName(rawCell)||url||rawCell;
+        sheetXml+=`<c r="${col}${rowNum}" t="s"><v>${si(display)}</v></c>`;
+        if(url){
+          const rId='rId'+rIdCounter++;
+          rels.push({rId,url});
+          // hyperlink element added after sheetData
+        }
+      } else {
+        // Force date to string, everything else as string
+        sheetXml+=`<c r="${col}${rowNum}" t="s"><v>${si(isDate?rawCell:rawCell)}</v></c>`;
+      }
+    });
+    sheetXml+='</row>';
+  });
+
+  sheetXml+='</sheetData>';
+
+  // Hyperlinks section — this is what makes them clickable in Excel
+  if(rels.length>0){
+    sheetXml+='<hyperlinks>';
+    // Re-derive cell refs for hyperlinks
+    let rIdIdx=0;
+    dataRows.forEach((row,ri)=>{
+      const rowNum=ri+2;
+      hyperlinkColIndices.forEach(ci=>{
+        const rawCell=String(row[ci]||'');
+        const url=extractUrl(rawCell)||(rawCell.startsWith('http')?rawCell:'');
+        if(url){
+          const col=colName(ci);
+          sheetXml+=`<hyperlink ref="${col}${rowNum}" r:id="${rels[rIdIdx++].rId}"/>`;
+        }
+      });
+    });
+    sheetXml+='</hyperlinks>';
+  }
+
+  sheetXml+='</worksheet>';
+
+  // SST XML
+  let sstXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  sstXml+=`<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">`;
+  sst.forEach(s=>{
+    sstXml+=`<si><t xml:space="preserve">${xmlEsc(s)}</t></si>`;
+  });
+  sstXml+='</sst>';
+
+  // Sheet relationships XML
+  let sheetRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  sheetRelsXml+='<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+  rels.forEach(r=>{
+    sheetRelsXml+=`<Relationship Id="${r.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${xmlEsc(r.url)}" TargetMode="External"/>`;
+  });
+  sheetRelsXml+='</Relationships>';
+
+  // Workbook XML
+  const wbXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Leads" sheetId="1" r:id="rId1"/></sheets></workbook>';
+
+  // Workbook relationships
+  const wbRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
+
+  // Content types
+  const ctXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>';
+
+  // Root relationships
+  const rootRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  // Build ZIP using JSZip-compatible manual approach via fflate (included via XLSX.js internals)
+  // Use XLSX.js zip writer since it's already loaded
+  const files={
+    '[Content_Types].xml':ctXml,
+    '_rels/.rels':rootRelsXml,
+    'xl/workbook.xml':wbXml,
+    'xl/_rels/workbook.xml.rels':wbRelsXml,
+    'xl/sharedStrings.xml':sstXml,
+    'xl/worksheets/sheet1.xml':sheetXml,
+  };
+  if(rels.length>0){
+    files['xl/worksheets/_rels/sheet1.xml.rels']=sheetRelsXml;
+  }
+
+  // Use the zip writer bundled with XLSX.js
+  const zip=XLSX.utils.book_new().__zip||null;
+  // Fallback: build using Uint8Array zip manually
+  return buildZip(files);
+}
+
+function colName(idx){
+  let s='';let i=idx+1;
+  while(i>0){s=String.fromCharCode(64+(i%26||26))+s;i=Math.floor((i-1)/26);}
+  return s;
+}
+
+function xmlEsc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+function buildZip(files){
+  // Simple ZIP builder — store method (no compression) for simplicity
+  const enc=new TextEncoder();
+  const entries=[];
+  const central=[];
+  let offset=0;
+
+  for(const [name,content] of Object.entries(files)){
+    const nameBuf=enc.encode(name);
+    const dataBuf=enc.encode(content);
+    const crc=crc32(dataBuf);
+    const local=new Uint8Array(30+nameBuf.length+dataBuf.length);
+    const dv=new DataView(local.buffer);
+    // Local file header signature
+    dv.setUint32(0,0x04034b50,true);
+    dv.setUint16(4,20,true); // version needed
+    dv.setUint16(6,0,true);  // flags
+    dv.setUint16(8,0,true);  // compression: store
+    dv.setUint16(10,0,true); // mod time
+    dv.setUint16(12,0,true); // mod date
+    dv.setUint32(14,crc,true);
+    dv.setUint32(18,dataBuf.length,true);
+    dv.setUint32(22,dataBuf.length,true);
+    dv.setUint16(26,nameBuf.length,true);
+    dv.setUint16(28,0,true);
+    local.set(nameBuf,30);
+    local.set(dataBuf,30+nameBuf.length);
+
+    // Central directory entry
+    const cent=new Uint8Array(46+nameBuf.length);
+    const cdv=new DataView(cent.buffer);
+    cdv.setUint32(0,0x02014b50,true);
+    cdv.setUint16(4,20,true);
+    cdv.setUint16(6,20,true);
+    cdv.setUint16(8,0,true);
+    cdv.setUint16(10,0,true);
+    cdv.setUint16(12,0,true);
+    cdv.setUint16(14,0,true);
+    cdv.setUint32(16,crc,true);
+    cdv.setUint32(20,dataBuf.length,true);
+    cdv.setUint32(24,dataBuf.length,true);
+    cdv.setUint16(28,nameBuf.length,true);
+    cdv.setUint16(30,0,true);
+    cdv.setUint16(32,0,true);
+    cdv.setUint16(34,0,true);
+    cdv.setUint16(36,0,true);
+    cdv.setUint32(38,0,true);
+    cdv.setUint32(42,offset,true);
+    cent.set(nameBuf,46);
+
+    entries.push(local);
+    central.push(cent);
+    offset+=local.length;
+  }
+
+  const centralBuf=concat(central);
+  const eocd=new Uint8Array(22);
+  const edv=new DataView(eocd.buffer);
+  edv.setUint32(0,0x06054b50,true);
+  edv.setUint16(4,0,true);
+  edv.setUint16(6,0,true);
+  edv.setUint16(8,entries.length,true);
+  edv.setUint16(10,entries.length,true);
+  edv.setUint32(12,centralBuf.length,true);
+  edv.setUint32(16,offset,true);
+  edv.setUint16(20,0,true);
+
+  return concat([...entries,centralBuf,eocd]);
+}
+
+function concat(arrays){
+  const total=arrays.reduce((s,a)=>s+a.length,0);
+  const out=new Uint8Array(total);
+  let pos=0;
+  for(const a of arrays){out.set(a,pos);pos+=a.length;}
+  return out;
+}
+
+function crc32(buf){
+  let crc=0xFFFFFFFF;
+  for(let i=0;i<buf.length;i++){
+    crc^=buf[i];
+    for(let j=0;j<8;j++) crc=(crc>>>1)^(crc&1?0xEDB88320:0);
+  }
+  return(crc^0xFFFFFFFF)>>>0;
+}
+
 $('btnDownload').addEventListener('click',async()=>{
   if(!filteredLeads.length){showToast('No leads to download.','err');return;}
   showToast('Preparing download…');
 
   try{
-    // Get the set of LinkedIn profile URLs for filtered leads
     const filteredKeys=new Set(filteredLeads.map(l=>l._key));
 
-    // Re-read with formulas to get hyperlink formulas
     const formulaRows=await readSheetWithFormulas(LEADS_TAB);
     if(!formulaRows||formulaRows.length<2){showToast('No data to download.','err');return;}
 
     const headers=formulaRows[0];
-    const profileLinkIdx=1; // col B
+    const profileLinkIdx=1;
 
-    // Filter raw rows to only those belonging to filtered leads
     const isAdminDlFilter=session.regions&&session.regions[0]==='ALL';
     const myRegionsDl=(session.regions||[session.region||'']).map(r=>r.toLowerCase().trim());
+
     const dataRows=formulaRows.slice(1).filter(row=>{
-      // Region filter
       if(!isAdminDlFilter){
         const regionIdx=headers.findIndex(h=>String(h).trim()==='REGION (auto)');
         if(regionIdx>-1){
@@ -1049,54 +1271,34 @@ $('btnDownload').addEventListener('click',async()=>{
           if(!myRegionsDl.includes(rv))return false;
         }
       }
-      // Lead filter — match by LinkedIn profile URL
       const profileCell=row[profileLinkIdx]||'';
       const profileUrl=extractUrl(profileCell)||profileCell;
       return filteredKeys.has(profileUrl)||filteredKeys.has(`__nokey_${formulaRows.indexOf(row)-1}`);
     });
 
-    // Find DATE column index to force text formatting
+    const hyperlinkColIndices=[0,1,9,10,11]; // A,B,J,K,L
     const dateColIdx=headers.findIndex(h=>String(h).trim()==='DATE');
 
-    // Build worksheet cell by cell to control types
-    const wb=XLSX.utils.book_new();
-    const wsData=[headers,...dataRows];
-    const ws=XLSX.utils.aoa_to_sheet(wsData.map((row,ri)=>
-      row.map((cell,ci)=>{
-        // Force DATE column to text to prevent serial number conversion
-        if(ri>0 && ci===dateColIdx) return {t:'s',v:String(cell||'')};
-        return cell||'';
-      })
-    ));
-
-    // Patch hyperlink columns: A(0), B(1), J(9), K(10), L(11)
-    const hyperlinkColIndices=[0,1,9,10,11];
-    dataRows.forEach((row,dataRowIdx)=>{
-      const wsRowIdx=dataRowIdx+1;
-      hyperlinkColIndices.forEach(colIdx=>{
-        const rawCell=String(row[colIdx]||'');
-        const url=extractUrl(rawCell)||(rawCell.startsWith('http')?rawCell:'');
-        const displayName=extractName(rawCell)||url;
-        if(!url)return;
-        const cellRef=XLSX.utils.encode_cell({r:wsRowIdx,c:colIdx});
-        ws[cellRef]={t:'s',v:displayName,l:{Target:url}};
-      });
-      // Also force DATE cell to text in the patched sheet
-      if(dateColIdx>-1){
-        const dateCellRef=XLSX.utils.encode_cell({r:wsRowIdx,c:dateColIdx});
-        const dateVal=String(row[dateColIdx]||'');
-        if(dateVal) ws[dateCellRef]={t:'s',v:dateVal};
-      }
-    });
-
-    // Build filename from session context
+    // Build filename: TAW_Leads_[regions]_[username]_[active filters]_[date].xlsx
     const isAdminDl=session.regions&&session.regions[0]==='ALL';
-    const fnPart=isAdminDl?'ALL':session.chapter||session.region||'';
+    const regionPart=isAdminDl?'ALL':(session.regions||[]).join('-').replace(/\s+/g,'_');
+    const userPart=session.username||'';
     const today=new Date().toISOString().slice(0,10);
-    const filename=`TAW_Leads_${fnPart.replace(/[\s,/]+/g,'_')}_${today}.xlsx`;
+    const filterParts=[];
+    const fComp=$('fCompany').value.trim(); if(fComp)filterParts.push('Co-'+fComp.replace(/\s+/g,'_'));
+    const fRole=$('fRole').value.trim(); if(fRole)filterParts.push('Role-'+fRole.replace(/\s+/g,'_'));
+    const fLoc=$('fLocation').value.trim(); if(fLoc)filterParts.push('Loc-'+fLoc.replace(/\s+/g,'_'));
+    const fStat=$('fStatus').value.trim(); if(fStat)filterParts.push('Status-'+fStat.replace(/\s+/g,'_'));
+    const fSrc=$('fSource').value.trim(); if(fSrc)filterParts.push('Src-'+fSrc.replace(/\s+/g,'_'));
+    const filterStr=filterParts.length>0?'_'+filterParts.join('_'):'';
+    const filename=`TAW_Leads_${regionPart}_${userPart}${filterStr}_${today}.xlsx`;
 
-    XLSX.utils.book_append_sheet(wb,ws,'Leads');
-    XLSX.writeFile(wb,filename,{bookSST:false,cellStyles:true});
+    const zipBytes=buildXlsxWithHyperlinks(headers,dataRows,hyperlinkColIndices,dateColIdx);
+    const blob=new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=filename;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
     showToast('Download started!');
   }catch(e){
     showToast('Download error: '+e.message,'err');
