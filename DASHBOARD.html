@@ -87,77 +87,71 @@
     .cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
 
     /* ── LEAD CARD ── */
-    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:320px 1fr;}
+    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:1fr 190px 230px;}
     .lead-card:hover{border-color:var(--border3);box-shadow:0 2px 16px rgba(0,0,0,0.25);}
 
     /* left column — identity */
-    .card-header{padding:16px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-start;}
-    .card-name{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:5px;}
+    .card-header{padding:18px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-start;}
+    .card-name{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px;}
     .card-name a{color:var(--text);text-decoration:none;border-bottom:1px solid rgba(238,242,232,0.15);transition:color 0.15s,border-color 0.15s;}
     .card-name a:hover{color:var(--gold2);border-color:var(--gold2);}
-    .card-linkedin{margin-bottom:4px;}
-    .card-linkedin a{font-family:'DM Mono',monospace;font-size:11px;color:var(--green2);text-decoration:none;opacity:0.8;transition:opacity 0.15s;}
-    .card-linkedin a:hover{opacity:1;color:var(--gold2);}
-    .card-role{font-size:15px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
-    .card-company{font-size:14px;color:var(--text3);font-family:'DM Mono',monospace;}
-    .card-location{font-size:13px;color:var(--text3);margin-top:7px;font-family:'DM Mono',monospace;line-height:1.5;}
+    .card-role{font-size:16px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
+    .card-company{font-size:15px;color:var(--text3);font-family:'DM Mono',monospace;}
+    .card-location{font-size:13px;color:var(--text3);margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6;}
+
+    /* middle column — CP / Region / Sources */
+    .card-mid{padding:16px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:14px;justify-content:center;}
+    .mid-item{display:flex;flex-direction:column;gap:5px;}
+    .mid-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text4);}
+    .chip{font-family:'DM Mono',monospace;font-size:12px;padding:4px 10px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;display:inline-block;}
+    .chip-cp{background:rgba(0,90,126,0.3);border-color:rgba(110,231,183,0.25);color:var(--green2);}
 
     /* source badges */
     .source-badges{display:flex;gap:5px;flex-wrap:wrap;}
-    .badge{font-family:'DM Mono',monospace;font-size:11px;padding:3px 8px;border-radius:3px;letter-spacing:0.05em;font-weight:500;cursor:default;position:relative;}
+    .badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:0.05em;font-weight:500;cursor:default;position:relative;}
     .badge[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1.5px solid var(--border2);color:var(--text2);font-size:11px;white-space:nowrap;padding:5px 10px;border-radius:4px;z-index:10;pointer-events:none;font-family:'DM Sans',sans-serif;letter-spacing:0;font-weight:400;}
     .badge[title]:hover::before{content:'';position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--border2);z-index:10;pointer-events:none;}
     .badge-school{background:var(--gold3);color:var(--gold);border:1px solid rgba(232,192,125,0.3);}
     .badge-group{background:var(--green3);color:var(--green2);border:1px solid rgba(110,231,183,0.3);}
     .badge-keywords{background:var(--blue2);color:var(--blue);border:1px solid rgba(74,142,204,0.3);}
 
-    /* right column — connections (replaces old card-body + card-footer) */
-    .card-body{padding:16px 20px;display:flex;flex-direction:column;justify-content:flex-start;align-items:flex-end;gap:12px;}
-
-    /* region/cp chip row — top of right column */
-    .card-meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-    .meta-item{display:flex;align-items:center;gap:4px;}
-    .meta-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text4);}
-    .chip{font-family:'DM Mono',monospace;font-size:12px;padding:4px 10px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;}
-    .chip-cp{background:rgba(0,90,126,0.3);border-color:rgba(110,231,183,0.25);color:var(--green2);}
-
-    /* connections section — right-justified */
+    /* right column — connections */
+    .card-body{padding:16px 18px;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:8px;}
     .connections-section{width:100%;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
     .connections-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:2px;}
-    .connections-list{display:flex;flex-direction:column;gap:7px;align-items:flex-end;}
+    .connections-list{display:flex;flex-direction:column;gap:7px;align-items:flex-end;width:100%;}
     .connection-item{display:flex;align-items:center;justify-content:flex-end;}
     .connection-name{color:var(--text2);font-size:13px;}
     .connection-link{color:var(--green2);text-decoration:none;font-size:13px;white-space:nowrap;background:var(--bg3);border:1px solid var(--border);padding:4px 10px;border-radius:4px;transition:all 0.15s;}
     .connection-link:hover{color:var(--gold2);border-color:rgba(232,192,125,0.3);}
-    .mutual-link{display:inline-flex;align-items:center;gap:5px;color:var(--gold);text-decoration:none;font-size:12px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 12px;border-radius:4px;transition:all 0.15s;}
+    .mutual-link{display:inline-flex;align-items:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 10px;border-radius:4px;transition:all 0.15s;}
     .mutual-link:hover{background:rgba(232,192,125,0.25);color:var(--gold2);}
     .no-connections{font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;}
-
-    /* flag button only in right column now */
-    .card-footer{padding:0 0 4px 0;display:flex;justify-content:flex-end;}
+    .card-footer{display:flex;justify-content:flex-end;margin-top:auto;width:100%;}
     .btn-flag{background:transparent;color:var(--text3);border:1px solid var(--border);font-size:11px;padding:4px 8px;font-family:'DM Mono',monospace;border-radius:4px;cursor:pointer;}
     .btn-flag:hover{color:var(--gold);border-color:rgba(200,168,75,0.4);}
-
-    /* sources label + badges */
-    .sources-section{margin-top:8px;}
-    .sources-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-bottom:6px;}
 
     /* linkedin in-badge */
     .in-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#0a66c2;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;border-radius:3px;text-decoration:none;flex-shrink:0;transition:opacity 0.15s;margin-left:6px;}
     .in-badge:hover{opacity:0.85;}
 
     /* ── SORT BAR ── */
-    .sort-bar{background:var(--bg);border-top:1px solid var(--border);padding:10px 20px;display:flex;align-items:center;gap:8px;}
-    .sort-bar-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-right:4px;}
-    .sort-btn{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:5px 13px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.15s;}
+    .sort-bar{background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:9px 20px;display:flex;align-items:center;gap:8px;}
+    .sort-bar-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-right:4px;white-space:nowrap;}
+    .sort-btn{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:4px 13px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.15s;white-space:nowrap;}
     .sort-btn:hover{border-color:var(--border3);color:var(--text);}
     .sort-btn.active{background:var(--gold3);border-color:rgba(232,192,125,0.4);color:var(--gold);}
+    .sort-spacer{flex:1;}
+    .sort-help{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+    .sort-help-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap;}
+    .in-badge-mini{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:#0a66c2;color:#fff;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;border-radius:2px;flex-shrink:0;}
 
-    /* responsive — stack on small screens */
+    /* responsive */
     @media(max-width:900px){
       .lead-card{grid-template-columns:1fr;}
       .card-header{border-right:none;border-bottom:1px solid var(--border);}
-      .card-body{align-items:flex-start;border-top:1px solid var(--border);}
+      .card-mid{border-right:none;border-bottom:1px solid var(--border);}
+      .card-body{align-items:flex-start;}
     }
 
     /* ── PAGINATION ── */
@@ -226,7 +220,7 @@
     </div>
     <div style="display:flex;align-items:center;gap:8px;">
       <span class="topbar-user" id="topbarUser"></span>
-      <span class="topbar-version">v6.2</span>
+      <span class="topbar-version">v6.3</span>
     </div>
     <div class="topbar-right">
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
@@ -301,6 +295,11 @@
       <button class="sort-btn" data-sort="role">Role / Title</button>
       <button class="sort-btn" data-sort="company">Company</button>
       <button class="sort-btn" data-sort="location">Location</button>
+      <div class="sort-spacer"></div>
+      <div class="sort-help">
+        <div class="sort-help-row">Click a name &rarr; Sales Navigator profile</div>
+        <div class="sort-help-row">Click <span class="in-badge-mini">in</span> &rarr; LinkedIn profile</div>
+      </div>
     </div>
 
     <div class="count-bar">
@@ -830,13 +829,6 @@ function renderCards(){
     const card=document.createElement('div');
     card.className='lead-card';
 
-    // Source badges
-    let badges='';
-    if(lead.hasSchool) badges+=`<span class="badge badge-school" title="Attended a solid Christian college">Christian College</span>`;
-    if(lead.hasGroup)  badges+=`<span class="badge badge-group" title="Member of an overt Christian LinkedIn group">Christian Group</span>`;
-    if(lead.hasKeywords) badges+=`<span class="badge badge-keywords" title="Profile has overt Christian wording">Keywords</span>`;
-    const sourcesHtml=badges?`<div class="sources-section"><div class="sources-label">Sources</div><div class="source-badges">${badges}</div></div>`:'';
-
     // Name: Sales Nav link + LinkedIn in-badge
     const linkedInBadge=lead.LinkedInProfileUrl
       ?`<a class="in-badge" href="${esc(lead.LinkedInProfileUrl)}" target="_blank" rel="noopener" title="Open LinkedIn Profile">in</a>`
@@ -845,12 +837,17 @@ function renderCards(){
       ? `<a href="${esc(lead.NameUrl)}" target="_blank" rel="noopener" title="Click for Sales Navigator Profile">${esc(lead.Name||'Unknown')}</a>${linkedInBadge}`
       : esc(lead.Name||'Unknown');
 
-    // CP / Region chips — CP left of Region
-    let metaHtml='';
-    if(lead.CP)     metaHtml+=`<div class="meta-item"><span class="meta-label">CP</span><span class="chip chip-cp">${esc(lead.CP)}</span></div>`;
-    if(lead.Region) metaHtml+=`<div class="meta-item"><span class="meta-label">Region</span><span class="chip">${esc(lead.Region)}</span></div>`;
+    // Middle column: CP, Region, Sources
+    let midHtml='';
+    if(lead.CP) midHtml+=`<div class="mid-item"><div class="mid-label">CP</div><span class="chip chip-cp">${esc(lead.CP)}</span></div>`;
+    if(lead.Region) midHtml+=`<div class="mid-item"><div class="mid-label">Region</div><span class="chip">${esc(lead.Region)}</span></div>`;
+    let badges='';
+    if(lead.hasSchool) badges+=`<span class="badge badge-school" title="Attended a solid Christian college">Christian College</span>`;
+    if(lead.hasGroup)  badges+=`<span class="badge badge-group" title="Member of an overt Christian LinkedIn group">Christian Group</span>`;
+    if(lead.hasKeywords) badges+=`<span class="badge badge-keywords" title="Profile has overt Christian wording">Keywords</span>`;
+    midHtml+=`<div class="mid-item"><div class="mid-label">Sources</div><div class="source-badges">${badges||'<span style="font-size:11px;color:var(--text4);font-family:\'DM Mono\',monospace;">—</span>'}</div></div>`;
 
-    // Connections — right-justified
+    // Right column: Connections
     let connectionsHtml='';
     const hasAnyConnections=lead.MutualConnectionsUrl||lead.connections.length>0;
     if(hasAnyConnections){
@@ -879,7 +876,7 @@ function renderCards(){
           <div class="connections-list">${items}</div>
         </div>`;
     }else{
-      connectionsHtml=`<div class="connections-section"><span class="no-connections">No named connections available</span></div>`;
+      connectionsHtml=`<div class="connections-section"><div class="connections-label">Mutual Connections</div><span class="no-connections">No named connections available</span></div>`;
     }
 
     card.innerHTML=`
@@ -888,10 +885,9 @@ function renderCards(){
         <div class="card-role">${esc(lead.Role||'—')}</div>
         <div class="card-company">${esc(lead.Company||'—')}</div>
         <div class="card-location">${esc(lead.Location||'—')}${lead.State?' · '+esc(lead.State):''}</div>
-        ${sourcesHtml}
       </div>
+      <div class="card-mid">${midHtml}</div>
       <div class="card-body">
-        <div class="card-meta">${metaHtml}</div>
         ${connectionsHtml}
         <div class="card-footer">
           <button class="btn-flag" data-name="${esc(lead.Name||'')}">⚑ Flag</button>
