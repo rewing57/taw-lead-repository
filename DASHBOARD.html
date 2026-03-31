@@ -17,6 +17,9 @@
       --red:#e05a4a;--red2:rgba(224,90,74,0.15);--success:#4aaa6a;--success2:rgba(110,231,183,0.15);
       --blue:#7db8e8;--blue2:rgba(125,184,232,0.12);
       --radius:6px;--radius2:10px;--radius3:14px;
+		
+		.miles-away{font-family:'DM Mono',monospace;font-size:11px;color:rgba(240,242,250,0.45);padding:2px 0;}
+		
     }
     html{font-size:16px;}
     body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
@@ -831,8 +834,10 @@ function renderCards(){
     // Middle column: CP, Region, Sources
     let midHtml='';
     if(lead.CP) midHtml+=`<div class="mid-item"><div class="mid-label">CP</div><span class="chip chip-cp">${esc(lead.CP)}</span></div>`;
-    if(lead.Region) midHtml+=`<div class="mid-item"><div class="mid-label">Region</div><span class="chip">${esc(lead.Region)}</span></div>`;
-    let badges='';
+   
+if(lead.Region) midHtml+=`<div class="mid-item"><div class="mid-label">Region</div><span class="chip">${esc(lead.Region)}</span>${lead.Miles?`<span class="miles-away">[Miles Away: ${esc(lead.Miles)}]</span>`:''}</div>`;
+	  
+	  let badges='';
     if(lead.hasSchool) badges+=`<span class="badge badge-school" title="Attended a solid Christian college">Christian College</span>`;
     if(lead.hasGroup)  badges+=`<span class="badge badge-group" title="Member of an overt Christian LinkedIn group">Christian Group</span>`;
     if(lead.hasKeywords) badges+=`<span class="badge badge-keywords" title="Profile has overt Christian wording">Keywords</span>`;
