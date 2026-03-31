@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TAW Lead Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,400;0,600;0,700;1,400&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --bg:#004969;--bg2:#005a7e;--bg3:#006b96;--bg4:#007aaa;
+      --border:rgba(255,255,255,0.08);--border2:rgba(125,184,232,0.25);--border3:rgba(125,184,232,0.45);
+      --gold:#e8c07d;--gold2:#f5d9a0;--gold3:rgba(232,192,125,0.12);
+      --green:#6ee7b7;--green2:#6ee7b7;--green3:rgba(110,231,183,0.1);
+      --text:#f0f2fa;--text2:rgba(240,242,250,0.75);--text3:rgba(240,242,250,0.45);--text4:rgba(240,242,250,0.25);
+      --red:#e05a4a;--red2:rgba(224,90,74,0.15);--success:#4aaa6a;--success2:rgba(110,231,183,0.15);
+      --blue:#7db8e8;--blue2:rgba(125,184,232,0.12);
+      --radius:6px;--radius2:10px;--radius3:14px;
+    }
+    html{font-size:16px;}
+    body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,90,126,0.3) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 90% 90%,rgba(232,192,125,0.06) 0%,transparent 50%);pointer-events:none;z-index:0;}
+
+    /* ── LOGIN ── */
+    #loginScreen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--bg);}
+    .login-box{position:relative;z-index:1;background:var(--bg2);border:1.5px solid var(--border2);border-radius:16px;padding:48px 40px;width:100%;max-width:420px;text-align:center;}
+    .login-eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
+    .login-title{font-family:'Fraunces',serif;font-size:2.4rem;font-weight:700;margin-bottom:8px;line-height:1.1;}
+    .login-title span{color:var(--gold2);}
+    .login-sub{font-size:13px;color:var(--text2);margin-bottom:32px;line-height:1.5;}
+    .login-field{width:100%;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:12px;outline:none;transition:border-color 0.15s;}
+    .login-field:focus{border-color:var(--gold);}
+    .login-field::placeholder{color:rgba(240,242,250,0.6);}
+    .login-error{font-size:12px;color:var(--red);margin-bottom:12px;min-height:18px;font-family:'DM Mono',monospace;}
+    .btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;transition:all 0.15s;}
+    .btn-primary{background:linear-gradient(135deg,#c9a45e,#e8c07d);color:#0c0800;width:100%;justify-content:center;padding:13px;font-size:14px;}
+    .btn-primary:hover{filter:brightness(1.08);}
+    .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
+    .btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border2);}
+    .btn-ghost:hover{color:var(--text);border-color:var(--border3);}
+    .btn-sm{font-size:12px;padding:5px 11px;}
+
+    /* ── APP SHELL ── */
+    #app{display:none;position:relative;z-index:1;}
+    .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
+    .topbar-left{display:flex;align-items:center;gap:14px;}
+    .topbar-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);line-height:1.2;}
+    .topbar-title{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;line-height:1.2;}
+    .region-badge{font-family:'DM Mono',monospace;font-size:11px;background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);padding:3px 10px;border-radius:20px;}
+    .topbar-right{display:flex;align-items:center;gap:8px;}
+    .topbar-user{font-family:'DM Sans',sans-serif;font-size:14px;font-weight:600;color:var(--text);margin-right:4px;}
+    .topbar-version{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,0.06);border:1px solid var(--border);padding:2px 7px;border-radius:3px;}
+
+    /* checklist dropdown */
+    .checklist-wrap{position:relative;}
+    .checklist-trigger{background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:100%;cursor:pointer;display:flex;align-items:center;justify-content:space-between;gap:6px;transition:border-color 0.15s;}
+    .checklist-trigger:hover{border-color:var(--border3);}
+    .checklist-trigger.open{border-color:var(--gold);}
+    .checklist-arrow{font-size:10px;color:var(--text3);flex-shrink:0;}
+    .checklist-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius);z-index:100;max-height:220px;overflow-y:auto;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+    .checklist-item{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;transition:background 0.1s;font-size:13px;color:var(--text2);}
+    .checklist-item:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+    .checklist-item input[type=checkbox]{accent-color:var(--gold);width:13px;height:13px;cursor:pointer;flex-shrink:0;}
+    .checklist-item.checked{color:var(--text);}
+    .checklist-locked{background:rgba(255,255,255,0.04);border:1.5px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text3);font-family:'DM Mono',monospace;cursor:default;}
+    .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 80px;}
+
+    /* ── FILTERS ── */
+    .filters-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:16px 20px;margin-bottom:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px;align-items:end;}
+    .filter-group{display:flex;flex-direction:column;gap:5px;}
+    .filter-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);}
+    .filter-input{background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;width:100%;transition:border-color 0.15s;}
+    .filter-input:focus{border-color:var(--gold);}
+    .filter-input::placeholder{color:rgba(240,242,250,0.55);}
+    .filter-input option{background:#005a7e;color:#f0f2fa;}
+    select.filter-input{color:var(--text);}
+    .filter-actions{display:flex;gap:8px;align-items:flex-end;}
+
+    /* ── COUNT BAR ── */
+    .count-bar{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+    .lead-count{font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);}
+
+    /* ── CARD GRID ── */
+    .cards-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+
+    /* ── LEAD CARD ── */
+    .lead-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius3);overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:grid;grid-template-columns:minmax(200px,396px) 175px 1fr;}
+    .lead-card:hover{border-color:var(--border3);box-shadow:0 2px 16px rgba(0,0,0,0.25);}
+
+    /* left column — identity */
+    .card-header{padding:18px 20px;border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:flex-start;}
+    .card-name{font-family:'Fraunces',serif;font-size:1.45rem;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:6px;}
+    .card-name a{color:var(--text);text-decoration:none;border-bottom:1px solid rgba(238,242,232,0.15);transition:color 0.15s,border-color 0.15s;}
+    .card-name a:hover{color:var(--gold2);border-color:var(--gold2);}
+    .card-role{font-size:17px;color:var(--text2);margin-bottom:3px;line-height:1.4;}
+    .card-company{font-size:16px;color:var(--text3);font-family:'DM Mono',monospace;}
+    .card-location{font-size:14px;color:var(--text3);margin-top:8px;font-family:'DM Mono',monospace;line-height:1.6;}
+
+    /* middle column — CP / Region / Sources */
+    .card-mid{padding:16px 18px;border-right:1px solid var(--border);display:flex;flex-direction:column;gap:14px;justify-content:center;}
+    .mid-item{display:flex;flex-direction:column;gap:5px;}
+    .mid-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text4);}
+
+
+.chip{font-family:'DM Mono',monospace;font-size:12px;padding:4px 10px;border-radius:4px;background:var(--bg3);border:1px solid var(--border);color:var(--text3);cursor:default;user-select:none;display:inline-block;width:fit-content;}
+
+    .chip-cp{background:rgba(0,90,126,0.3);border-color:rgba(110,231,183,0.25);color:var(--green2);}
+
+    /* source badges */
+    .source-badges{display:flex;gap:5px;flex-wrap:wrap;}
+    .badge{font-family:'DM Mono',monospace;font-size:10px;padding:2px 7px;border-radius:3px;letter-spacing:0.05em;font-weight:500;cursor:default;position:relative;}
+    .badge[title]:hover::after{content:attr(title);position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--bg3);border:1.5px solid var(--border2);color:var(--text2);font-size:11px;white-space:nowrap;padding:5px 10px;border-radius:4px;z-index:10;pointer-events:none;font-family:'DM Sans',sans-serif;letter-spacing:0;font-weight:400;}
+    .badge[title]:hover::before{content:'';position:absolute;bottom:calc(100% + 1px);left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--border2);z-index:10;pointer-events:none;}
+    .badge-school{background:var(--gold3);color:var(--gold);border:1px solid rgba(232,192,125,0.3);}
+    .badge-group{background:var(--green3);color:var(--green2);border:1px solid rgba(110,231,183,0.3);}
+    .badge-keywords{background:var(--blue2);color:var(--blue);border:1px solid rgba(74,142,204,0.3);}
+
+    /* right column — connections 2-col grid */
+    .card-body{padding:14px 16px;display:flex;flex-direction:column;align-items:flex-end;gap:8px;}
+    .connections-section{width:100%;display:flex;flex-direction:column;gap:8px;}
+    .connections-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);text-align:right;}
+    .connections-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;}
+    .connections-grid.one-col{grid-template-columns:1fr;}
+    .mutual-full{grid-column:1/-1;}
+    .mutual-link{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 10px;border-radius:4px;transition:all 0.15s;width:100%;}
+    .mutual-link:hover{background:rgba(232,192,125,0.25);color:var(--gold2);}
+    .connection-item{display:flex;align-items:center;gap:4px;justify-content:flex-end;}
+    .connection-name{color:var(--text2);font-size:13px;}
+   
+
+.connection-link{color:var(--green2);text-decoration:none;font-size:13px;white-space:nowrap;background:var(--bg3);border:1px solid var(--border);padding:4px 9px;border-radius:4px;transition:all 0.15s;width:auto;}
+
+
+
+    .connection-link:hover{color:var(--gold2);border-color:rgba(232,192,125,0.3);}
+    .no-connections{font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;text-align:right;}
+
+    /* linkedin in-badge */
+    .in-badge{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:#0a66c2;color:#fff;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;border-radius:3px;text-decoration:none;flex-shrink:0;transition:opacity 0.15s;margin-left:6px;}
+    .in-badge:hover{opacity:0.85;}
+
+    /* ── SORT BAR ── */
+    .sort-bar{background:var(--bg);border-top:1px solid var(--border);border-bottom:1px solid var(--border);padding:9px 20px;display:flex;align-items:center;gap:8px;}
+    .sort-bar-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);margin-right:4px;white-space:nowrap;}
+    .sort-btn{background:rgba(255,255,255,0.06);border:1px solid var(--border);border-radius:var(--radius);padding:4px 13px;font-size:12px;color:var(--text2);cursor:pointer;font-family:'DM Mono',monospace;transition:all 0.15s;white-space:nowrap;}
+    .sort-btn:hover{border-color:var(--border3);color:var(--text);}
+    .sort-btn.active{background:var(--gold3);border-color:rgba(232,192,125,0.4);color:var(--gold);}
+    .sort-spacer{flex:1;}
+    .sort-help{display:flex;flex-direction:column;align-items:flex-end;gap:3px;}
+    .sort-help-row{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;white-space:nowrap;}
+    .in-badge-mini{display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;background:#0a66c2;color:#fff;font-family:'DM Sans',sans-serif;font-size:9px;font-weight:700;border-radius:2px;flex-shrink:0;}
+
+    /* responsive */
+    @media(max-width:900px){
+      .lead-card{grid-template-columns:1fr;}
+      .card-header{border-right:none;border-bottom:1px solid var(--border);}
+      .card-mid{border-right:none;border-bottom:1px solid var(--border);}
+      .card-body{align-items:flex-start;}
+    }
+
+    /* ── PAGINATION ── */
+    .pagination{display:flex;align-items:center;gap:6px;justify-content:center;margin-top:28px;font-family:'DM Mono',monospace;font-size:12px;}
+    .page-btn{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;color:var(--text2);cursor:pointer;transition:all 0.15s;}
+    .page-btn:hover:not(:disabled){border-color:var(--border3);color:var(--text);}
+    .page-btn.active{background:var(--gold3);border-color:var(--gold);color:var(--gold);}
+    .page-btn:disabled{opacity:0.3;cursor:not-allowed;}
+
+    /* ── MISC ── */
+    .hidden{display:none!important;}
+    .loading-wrap{text-align:center;padding:80px 20px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);}
+    .loading-spinner{display:inline-block;width:22px;height:22px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:14px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .empty-state{text-align:center;padding:80px 20px;font-family:'DM Mono',monospace;font-size:13px;color:var(--text3);}
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius);padding:12px 18px;font-size:13px;font-family:'DM Mono',monospace;z-index:300;transition:opacity 0.3s;}
+    .toast.ok{border-color:rgba(74,170,106,0.5);color:var(--success);}
+    .toast.err{border-color:rgba(224,90,74,0.5);color:var(--red);}
+
+    @media(max-width:600px){
+      .wrap{padding:16px 14px 60px;}
+      .topbar{padding:10px 14px;}
+      .filters-bar{grid-template-columns:1fr 1fr;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+  <div class="login-box">
+    <img src="https://truthatwork.org/wp-content/uploads/2022/12/Truth-at-Work-Logo_KO-480x328.png" style="height:48px;filter:brightness(0) invert(1);margin-bottom:16px;" alt="Truth at Work" />
+    <div class="login-eyebrow">Truth at Work</div>
+    <h1 class="login-title">Lead <span>Dashboard</span></h1>
+    <p class="login-sub">Sign in with your chapter access code to view your region's leads.</p>
+    <input class="login-field" type="text" id="loginUser" placeholder="Chapter username" autocomplete="off" />
+    <input class="login-field" type="password" id="loginPass" placeholder="Password" autocomplete="off" />
+    <div class="login-error" id="loginError"></div>
+    <button class="btn btn-primary" id="btnLogin">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-left">
+      <img src="https://truthatwork.org/wp-content/uploads/2022/12/Truth-at-Work-Logo_KO-480x328.png" style="height:28px;filter:brightness(0) invert(1);flex-shrink:0;" alt="Truth at Work" />
+      <div>
+        <div class="topbar-eyebrow">Truth at Work</div>
+        <div class="topbar-title">Lead Dashboard</div>
+      </div>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-user" id="topbarUser"></span>
+      <span class="region-badge" id="regionBadge">—</span>
+      <span class="topbar-version">v6.5</span>
+      <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
+      <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="filters-bar">
+      <div class="filter-group">
+        <div class="filter-label">Name</div>
+        <input class="filter-input" id="fName" type="text" placeholder="Search by name…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Company</div>
+        <input class="filter-input" id="fCompany" type="text" placeholder="Filter by company…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Role / Title</div>
+        <input class="filter-input" id="fRole" type="text" placeholder="Filter by role…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Location</div>
+        <input class="filter-input" id="fLocation" type="text" placeholder="Filter by location…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Connection Name</div>
+        <input class="filter-input" id="fChampion" type="text" placeholder="e.g. Ron Ewing…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Region</div>
+        <div class="checklist-wrap" id="regionFilterWrap">
+          <div class="checklist-trigger" id="regionTrigger" onclick="event.stopPropagation();toggleChecklist('region')">
+            <span id="regionTriggerLabel">All regions</span>
+            <span class="checklist-arrow">▾</span>
+          </div>
+          <div class="checklist-dropdown hidden" id="regionDropdown"></div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">CP</div>
+        <div class="checklist-wrap" id="cpFilterWrap">
+          <!-- populated by JS — checklist for admin, locked display for CP -->
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Date From</div>
+        <input class="filter-input" id="fDateFrom" type="date" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Date To</div>
+        <input class="filter-input" id="fDateTo" type="date" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Source</div>
+        <select class="filter-input" id="fSource">
+          <option value="">All sources</option>
+          <option value="school">Christian College</option>
+          <option value="group">Christian Group</option>
+          <option value="keywords">Keywords</option>
+          <option value="multi">Multiple Sources</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Inside X Miles</div>
+        <input class="filter-input" id="fMiles" type="number" min="0" placeholder="e.g. 25" />
+      </div>
+      <div class="filter-actions">
+        <button class="btn btn-ghost btn-sm" id="btnClearFilters">Clear</button>
+      </div>
+    </div>
+
+    <div class="sort-bar" id="sortBar">
+      <span class="sort-bar-label">Sort by</span>
+      <button class="sort-btn active" data-sort="name">Name <span class="sort-arrow">↑</span></button>
+      <button class="sort-btn" data-sort="role">Role / Title</button>
+      <button class="sort-btn" data-sort="company">Company</button>
+      <button class="sort-btn" data-sort="location">Location</button>
+      <button class="sort-btn" data-sort="mutual">Mutual Connections</button>
+      <button class="sort-btn" data-sort="miles">Miles to RT</button>
+      <div class="sort-spacer"></div>
+      <div class="sort-help">
+        <div class="sort-help-row">Click a name &rarr; Sales Navigator profile</div>
+        <div class="sort-help-row">Click <span class="in-badge-mini">in</span> &rarr; LinkedIn profile</div>
+      </div>
+    </div>
+
+    <div class="count-bar">
+      <div class="lead-count" id="leadCount"></div>
+    </div>
+
+    <div id="loadingWrap" class="loading-wrap">
+      <div class="loading-spinner"></div><br/>Loading leads…
+    </div>
+
+    <div id="cardsContainer" class="hidden">
+      <div class="cards-grid" id="cardsGrid"></div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+
+<div class="toast hidden" id="toast"></div>
+
+<script>
+// ══════════════════════════════════════════════
+//  CONFIG
+// ══════════════════════════════════════════════
+const SHEET_ID    = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
+const API_KEY     = 'AIzaSyC0BTQBKAnBUzc2LacWDX_K8Xw-HC5ahtE';
+const LEADS_TAB   = 'MEMBER LEADS';
+const REGIONS_TAB = 'Regions';
+
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+let session = null;
+let allLeads = [];        // grouped lead objects (one per unique LinkedIn profile)
+let rawRows  = [];        // original sheet rows (for download)
+let rawHeaders = [];      // original sheet headers
+let filteredLeads = [];
+let sortCol = 'name', sortDir = 1;
+let page = 1;
+const PAGE_SIZE = 100;
+let selectedRegions = new Set();
+let selectedCPs = new Set();
+
+// ══════════════════════════════════════════════
+//  UTILS
+// ══════════════════════════════════════════════
+const $ = id => document.getElementById(id);
+function showToast(msg, type='ok'){
+  const t=$('toast'); t.textContent=msg; t.className=`toast ${type}`;
+  t.classList.remove('hidden');
+  setTimeout(()=>t.classList.add('hidden'),3000);
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function extractUrl(val){
+  if(!val)return'';
+  const m=String(val).match(/=HYPERLINK\("([^"]+)"/i);
+  if(m)return m[1];
+  if(String(val).startsWith('http'))return String(val);
+  return'';
+}
+function extractName(val){
+  if(!val)return'';
+  const m=String(val).match(/=HYPERLINK\("[^"]+","([^"]+)"\)/i);
+  if(m)return m[1];
+  return String(val).replace(/^=HYPERLINK\([^)]+\)/i,'').trim()||String(val);
+}
+
+// ══════════════════════════════════════════════
+//  SHEETS API
+// ══════════════════════════════════════════════
+async function readPublicSheet(tab){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`;
+  const res=await fetch(url);
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
+  return(await res.json()).values||[];
+}
+async function readSheetWithFormulas(tab){
+  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}&valueRenderOption=FORMULA`;
+  const res=await fetch(url);
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
+  return(await res.json()).values||[];
+}
+
+
+// ══════════════════════════════════════════════
+//  LOGIN
+// ══════════════════════════════════════════════
+function doLogin(){
+  const user=$('loginUser').value.trim();
+  const pass=$('loginPass').value.trim();
+  $('loginError').textContent='';
+  if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
+
+  
+
+  $('btnLogin').disabled=true;
+  readPublicSheet(REGIONS_TAB).then(rows=>{
+    if(!rows||rows.length<2){$('loginError').textContent='Could not load region data.';return;}
+    const headers=rows[0].map(h=>String(h).toLowerCase().trim());
+    const uIdx=headers.indexOf('username');
+    const pIdx=headers.indexOf('password');
+    const rIdx=headers.indexOf('regions');
+    const cIdx=headers.indexOf('chaptername');
+
+
+const fnIdx=headers.indexOf('full name');
+const adminIdx=headers.indexOf('admin');
+const match=rows.slice(1).find(r=>
+  String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
+  String(r[pIdx]||'').trim()===pass
+);
+if(!match){$('loginError').textContent='Incorrect username or password.';return;}
+const isAdmin=adminIdx>-1&&String(match[adminIdx]||'').toLowerCase().trim()==='yes';
+const regionsArr=isAdmin?['ALL']:String(match[rIdx]||'').split(',').map(r=>r.trim()).filter(Boolean);
+session={
+  username:user,
+  regions:regionsArr,
+  region:isAdmin?'All Regions':regionsArr.join(', '),
+  chapter:String(match[cIdx]||user).trim(),
+  fullName:String(match[fnIdx]||match[cIdx]||user).trim()
+};
+
+    sessionStorage.setItem('taw_dash_session',JSON.stringify(session));
+    startApp();
+  }).catch(e=>{$('loginError').textContent='Login error: '+e.message;})
+  .finally(()=>{$('btnLogin').disabled=false;});
+}
+$('btnLogin').addEventListener('click',doLogin);
+$('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+
+// ══════════════════════════════════════════════
+//  APP INIT
+// ══════════════════════════════════════════════
+async function startApp(){
+  $('loginScreen').style.display='none';
+  $('app').style.display='block';
+  const isAdmin=session.regions&&session.regions[0]==='ALL';
+  $('regionBadge').textContent=isAdmin?'All Regions':session.region;
+  // Set topbar user name
+  const userLabel=isAdmin?'ADMINISTRATOR':`${session.fullName}, Chapter President`;
+  $('topbarUser').textContent=userLabel;
+  await loadLeads();
+}
+
+async function loadLeads(){
+  $('loadingWrap').classList.remove('hidden');
+  $('cardsContainer').classList.add('hidden');
+  try{
+    // Read with formulas to preserve hyperlinks
+    const rows=await readSheetWithFormulas(LEADS_TAB);
+    if(!rows||rows.length<2){allLeads=[];rawRows=[];rawHeaders=[];renderCards();return;}
+
+    rawHeaders=rows[0];
+    const headers=rawHeaders.map(h=>String(h).trim());
+
+    // Column index map
+    const ci={};
+    headers.forEach((h,i)=>ci[h]=i);
+
+    // Region filter — support multiple regions
+    const regionCol=ci['REGION (auto)'];
+    const isAdmin=session.regions&&session.regions[0]==='ALL';
+    const myRegions=session.regions.map(r=>r.toLowerCase().trim());
+
+    // Store raw rows for download (filtered by region)
+    rawRows=rows.slice(1).filter(r=>{
+      if(isAdmin)return true;
+      const rv=String(r[regionCol]||'').toLowerCase().trim();
+      return myRegions.includes(rv);
+    });
+
+    // Group by LinkedIn Profile Link (col B index 1)
+    const profileLinkIdx=1; // col B
+    const groups=new Map();
+
+    rawRows.forEach((row,rawIdx)=>{
+      const profileCell=row[profileLinkIdx]||'';
+      const profileUrl=extractUrl(profileCell)||profileCell;
+      const key=profileUrl||`__nokey_${rawIdx}`;
+
+      if(!groups.has(key)){
+        // First time seeing this lead — create lead object
+        const nameCell=row[ci['Name (Sales Nav Link)']||0]||'';
+        groups.set(key,{
+          _key:key,
+          _rowNums:[rawIdx+2], // 1-indexed sheet row (header is row 1, data starts row 2)
+          Name:extractName(nameCell),
+          NameUrl:extractUrl(nameCell)||profileUrl,
+          LinkedInProfileUrl:'',  // set after LinkedInID is read below
+          Role:row[ci['Role']]||'',
+          Company:row[ci['Company']]||'',
+          Location:row[ci['Location']]||'',
+          State:row[ci['State']]||'',
+          Region:row[ci['REGION (auto)']]||'',
+          CP:row[ci['CP (auto)']]||'',
+          MutualCount:row[ci['# of Mutual Connections']]||'',
+          Miles:row[ci['Miles to Round Table']]||'',
+          MutualConnectionsUrl:'',  // col K - set below
+          Email:row[ci['EMAIL']]||row[ci['Email']]||'',
+         
+
+	LinkedInID:row[ci['LinkedIn ID']]||'',
+          LinkedInProfileUrl:row[ci['LinkedIn ID']]?`https://www.linkedin.com/in/${row[ci['LinkedIn ID']]}`:'',
+
+          Status:row[ci['STATUS']]||row[ci['Status']]||'',
+          Date:row[ci['DATE']]||'',
+          hasSchool:false,
+          hasGroup:false,
+          hasKeywords:false,
+          connections:[] // array of {name, salesNavUrl, linkedInUrl}
+        });
+      }
+
+      const lead=groups.get(key);
+
+      // Track row numbers for all rows of this lead
+      if(!lead._rowNums.includes(rawIdx+2)) lead._rowNums.push(rawIdx+2);
+
+      // Merge source flags
+      if(row[ci['SCHOOL SOURCE']])lead.hasSchool=true;
+      if(row[ci['GROUP SOURCE']])lead.hasGroup=true;
+      if(row[ci['KEYWORDS SOURCE']])lead.hasKeywords=true;
+
+      // Capture mutual connections link (col K) — take first non-empty
+      if(!lead.MutualConnectionsUrl){
+        const mutCell=row[ci['Mutual Connections\n (Sales Nav Link)']]||
+                      row[ci['Mutual Connections (Sales Nav Link)']]||'';
+        const mutUrl=extractUrl(mutCell);
+        if(mutUrl)lead.MutualConnectionsUrl=mutUrl;
+      }
+
+      // Capture named connection (col J + col L)
+      const connNameCell=row[ci['Connection\n (Sales Nav Link)']]||
+                         row[ci['Connection (Sales Nav Link)']]||'';
+      const connLinkedInCell=row[ci['Connection \n (Raw LinkedIn Link)']]||
+                              row[ci['Connection (Raw LinkedIn Link)']]||'';
+      const connName=extractName(connNameCell);
+      const connSalesNavUrl=extractUrl(connNameCell);
+      const connLinkedInUrl=extractUrl(connLinkedInCell)||connLinkedInCell;
+
+      if(connName && connName.toLowerCase()!=='mutual connections'){
+        // Deduplicate by name
+        const exists=lead.connections.some(c=>c.name===connName);
+        if(!exists){
+          lead.connections.push({
+            name:connName,
+            salesNavUrl:connSalesNavUrl,
+            linkedInUrl:connLinkedInUrl
+          });
+        }
+      }
+
+      // Keep Status up to date (use latest non-empty)
+      const rowStatus=row[ci['STATUS']]||row[ci['Status']]||'';
+      if(rowStatus)lead.Status=rowStatus;
+    });
+
+    allLeads=Array.from(groups.values());
+    buildFilterChecklists();
+    applyFiltersAndRender();
+  }catch(e){
+    showToast('Error loading leads: '+e.message,'err');
+    console.error(e);
+  }finally{
+    $('loadingWrap').classList.add('hidden');
+    $('cardsContainer').classList.remove('hidden');
+  }
+}
+
+// ══════════════════════════════════════════════
+//  FILTERS
+// ══════════════════════════════════════════════
+// ── BUILD FILTER CHECKLISTS ──
+function buildFilterChecklists(){
+  const isAdmin=session.regions&&session.regions[0]==='ALL';
+
+  // Collect unique regions and CPs from loaded leads
+  const allRegions=[...new Set(allLeads.map(l=>l.Region).filter(Boolean))].sort();
+  const allCPs=[...new Set(allLeads.map(l=>l.CP).filter(Boolean))].sort();
+
+  // Helper: build a checklist with Select/Unselect All
+  function buildChecklist(containerId, items, selectedSet, onChangeFn, labelType, total){
+    const container=$(containerId);
+    container.innerHTML='';
+    // Select All / Unselect All row
+    const allRow=document.createElement('div');
+    allRow.style.cssText='display:flex;gap:8px;padding:6px 12px;border-bottom:1px solid var(--border);';
+    const selAll=document.createElement('button');
+    selAll.textContent='Select All';
+    selAll.style.cssText="background:none;border:none;color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;padding:0;";
+    const unselAll=document.createElement('button');
+    unselAll.textContent='Unselect All';
+    unselAll.style.cssText="background:none;border:none;color:var(--text3);font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;padding:0;";
+    selAll.onclick=()=>{
+      items.forEach(v=>selectedSet.add(v.toUpperCase()));
+      container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=true);
+      container.querySelectorAll('.checklist-item').forEach(el=>el.classList.add('checked'));
+      updateChecklistLabel(labelType,selectedSet,total);
+      applyFiltersAndRender();
+    };
+    unselAll.onclick=()=>{
+      selectedSet.clear();
+      container.querySelectorAll('input[type=checkbox]').forEach(cb=>cb.checked=false);
+      container.querySelectorAll('.checklist-item').forEach(el=>el.classList.remove('checked'));
+      updateChecklistLabel(labelType,selectedSet,total);
+      applyFiltersAndRender();
+    };
+    allRow.appendChild(selAll);
+    allRow.appendChild(unselAll);
+    container.appendChild(allRow);
+    // Items
+    items.forEach(v=>{
+      const item=document.createElement('div');
+      item.className='checklist-item checked';
+      item.innerHTML=`<input type="checkbox" checked value="${v}"> ${v}`;
+      item.querySelector('input').addEventListener('change',e=>{
+        if(e.target.checked){selectedSet.add(v.toUpperCase());item.classList.add('checked');}
+        else{selectedSet.delete(v.toUpperCase());item.classList.remove('checked');}
+        updateChecklistLabel(labelType,selectedSet,total);
+        onChangeFn();
+      });
+      container.appendChild(item);
+    });
+  }
+
+  // REGION checklist
+  const regionsToShow=isAdmin?allRegions:session.regions;
+  selectedRegions=new Set(regionsToShow.map(r=>r.toUpperCase()));
+  buildChecklist('regionDropdown',regionsToShow,selectedRegions,applyFiltersAndRender,'region',regionsToShow.length);
+  updateChecklistLabel('region',selectedRegions,regionsToShow.length);
+
+  // CP filter
+  const cpWrap=$('cpFilterWrap');
+  cpWrap.innerHTML='';
+  if(isAdmin){
+    selectedCPs=new Set(allCPs.map(c=>c.toUpperCase()));
+    // Build trigger button
+    const trigger=document.createElement('div');
+    trigger.className='checklist-trigger';
+    trigger.id='cpTrigger';
+    trigger.innerHTML=`<span id="cpTriggerLabel">All CPs</span><span class="checklist-arrow">▾</span>`;
+    trigger.onclick=(e)=>{e.stopPropagation();toggleChecklist('cp');};
+    const dropdown=document.createElement('div');
+    dropdown.className='checklist-dropdown hidden';
+    dropdown.id='cpDropdown';
+    cpWrap.appendChild(trigger);
+    cpWrap.appendChild(dropdown);
+    buildChecklist('cpDropdown',allCPs,selectedCPs,applyFiltersAndRender,'cp',allCPs.length);
+    updateChecklistLabel('cp',selectedCPs,allCPs.length);
+  } else {
+    selectedCPs=new Set([session.chapter.toUpperCase()]);
+    const locked=document.createElement('div');
+    locked.className='checklist-locked';
+    locked.textContent=session.chapter;
+    cpWrap.appendChild(locked);
+  }
+}
+
+function updateChecklistLabel(type,selected,total){
+  const labelEl=$(type==='region'?'regionTriggerLabel':'cpTriggerLabel');
+  if(!labelEl)return;
+  if(selected.size===0)labelEl.textContent='None selected';
+  else if(selected.size===total)labelEl.textContent=type==='region'?'All regions':'All CPs';
+  else labelEl.textContent=`${selected.size} selected`;
+}
+
+function toggleChecklist(type){
+  const trigger=$(type==='region'?'regionTrigger':'cpTrigger');
+  const dropdown=$(type==='region'?'regionDropdown':'cpDropdown');
+  if(!trigger||!dropdown)return;
+  const isOpen=!dropdown.classList.contains('hidden');
+  // Close all dropdowns first
+  ['regionDropdown','cpDropdown'].forEach(id=>{
+    const d=$(id);if(d)d.classList.add('hidden');
+  });
+  ['regionTrigger','cpTrigger'].forEach(id=>{
+    const t=$(id);if(t)t.classList.remove('open');
+  });
+  if(!isOpen){
+    dropdown.classList.remove('hidden');
+    trigger.classList.add('open');
+  }
+}
+// Close dropdowns when clicking outside
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.checklist-wrap')&&!e.target.closest('#cpFilterWrap')){
+    ['regionDropdown','cpDropdown'].forEach(id=>{const d=$(id);if(d)d.classList.add('hidden');});
+    ['regionTrigger','cpTrigger'].forEach(id=>{const t=$(id);if(t)t.classList.remove('open');});
+  }
+});
+
+function applyFiltersAndRender(){
+  const fName=$('fName').value.toLowerCase().trim();
+  const fComp=$('fCompany').value.toLowerCase().trim();
+  const fRole=$('fRole').value.toLowerCase().trim();
+  const fLoc=$('fLocation').value.toLowerCase().trim();
+  const fChamp=$('fChampion').value.toLowerCase().trim();
+  const fSrc=$('fSource').value.toLowerCase().trim();
+  const fDateFrom=$('fDateFrom').value;
+  const fDateTo=$('fDateTo').value;
+  const fMilesVal=$('fMiles').value.trim();
+  const fMilesNum=fMilesVal!==''?parseFloat(fMilesVal):null;
+  const isAdmin=session.regions&&session.regions[0]==='ALL';
+
+  filteredLeads=allLeads.filter(r=>{
+    if(fName&&!String(r.Name||'').toLowerCase().includes(fName))return false;
+    if(fComp&&!String(r.Company||'').toLowerCase().includes(fComp))return false;
+    if(fRole&&!String(r.Role||'').toLowerCase().includes(fRole))return false;
+    if(fLoc&&!String(r.Location||'').toLowerCase().includes(fLoc))return false;
+    if(fChamp){
+      const connNames=r.connections.map(c=>c.name.toLowerCase()).join(' ');
+      if(!connNames.includes(fChamp))return false;
+    }
+    if(fSrc==='school'&&!r.hasSchool)return false;
+    if(fSrc==='group'&&!r.hasGroup)return false;
+    if(fSrc==='keywords'&&!r.hasKeywords)return false;
+    if(fSrc==='multi'){
+      const count=(r.hasSchool?1:0)+(r.hasGroup?1:0)+(r.hasKeywords?1:0);
+      if(count<2)return false;
+    }
+    if(selectedRegions.size>0&&r.Region&&!selectedRegions.has(r.Region.toUpperCase()))return false;
+    if(selectedCPs.size>0&&r.CP&&!selectedCPs.has(r.CP.toUpperCase()))return false;
+    if(fDateFrom||fDateTo){
+      const d=parseDate(r.Date);
+      if(d){
+        if(fDateFrom&&d<new Date(fDateFrom+'T00:00:00'))return false;
+        if(fDateTo&&d>new Date(fDateTo+'T23:59:59'))return false;
+      }
+    }
+    if(fMilesNum!==null){
+      const m=r.Miles!==''?parseFloat(r.Miles):Infinity;
+      if(m>fMilesNum)return false;
+    }
+    return true;
+  });
+
+  // Sort
+  const keyMap={name:'Name',role:'Role',company:'Company',location:'Location'};
+  filteredLeads.sort((a,b)=>{
+    if(sortCol==='mutual'){
+      const av=a.MutualCount!==''?parseInt(a.MutualCount,10):0;
+      const bv=b.MutualCount!==''?parseInt(b.MutualCount,10):0;
+      return (bv-av)*sortDir;
+    }
+    if(sortCol==='miles'){
+      const av=a.Miles!==''?parseFloat(a.Miles):Infinity;
+      const bv=b.Miles!==''?parseFloat(b.Miles):Infinity;
+      return (av-bv)*sortDir;
+    }
+    const key=keyMap[sortCol]||'Name';
+    const av=String(a[key]||'').toLowerCase();
+    const bv=String(b[key]||'').toLowerCase();
+    return av<bv?-sortDir:av>bv?sortDir:0;
+  });
+
+  page=1;
+  renderCards();
+}
+
+function parseDate(str){
+  if(!str)return null;
+  // Handle MM/DD/YYYY
+  const m=String(str).match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m)return new Date(`${m[3]}-${m[1].padStart(2,'0')}-${m[2].padStart(2,'0')}T00:00:00`);
+  // Handle YYYY-MM-DD
+  if(String(str).match(/^\d{4}-\d{2}-\d{2}$/))return new Date(str+'T00:00:00');
+  return null;
+}
+
+['fName','fCompany','fRole','fLocation','fChampion','fSource','fDateFrom','fDateTo','fMiles'].forEach(id=>{
+  const el=$(id); if(!el)return;
+  el.addEventListener('input',applyFiltersAndRender);
+  el.addEventListener('change',applyFiltersAndRender);
+});
+$('btnClearFilters').addEventListener('click',()=>{
+  ['fName','fCompany','fRole','fLocation','fChampion','fDateFrom','fDateTo','fMiles'].forEach(id=>{const el=$(id);if(el)el.value='';});
+  $('fSource').value='';
+  buildFilterChecklists();
+  applyFiltersAndRender();
+});
+
+// Sort bar
+document.querySelectorAll('.sort-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    const col=btn.dataset.sort;
+    if(sortCol===col){
+      sortDir*=-1;
+    }else{
+      sortCol=col;
+      sortDir=1;
+    }
+    document.querySelectorAll('.sort-btn').forEach(b=>{
+      b.classList.remove('active');
+      b.innerHTML=b.textContent.replace(/ [↑↓]$/,'').trim();
+    });
+    btn.classList.add('active');
+    btn.innerHTML=btn.textContent.trim()+' '+(sortDir===1?'↑':'↓');
+    applyFiltersAndRender();
+  });
+});
+
+// ══════════════════════════════════════════════
+//  RENDER CARDS
+// ══════════════════════════════════════════════
+function renderCards(){
+  const total=filteredLeads.length;
+  $('leadCount').textContent=`${total.toLocaleString()} lead${total!==1?'s':''} ${total!==allLeads.length?`(filtered from ${allLeads.length.toLocaleString()})`:''} `;
+
+  const start=(page-1)*PAGE_SIZE;
+  const pageLeads=filteredLeads.slice(start,start+PAGE_SIZE);
+  const grid=$('cardsGrid');
+  grid.innerHTML='';
+
+  if(!pageLeads.length){
+    grid.innerHTML=`<div class="empty-state" style="grid-column:1/-1;">No leads found matching your filters.</div>`;
+    renderPagination(total);
+    return;
+  }
+
+  pageLeads.forEach(lead=>{
+    const card=document.createElement('div');
+    card.className='lead-card';
+
+    // Name: Sales Nav link + LinkedIn in-badge
+    const linkedInBadge=lead.LinkedInProfileUrl
+      ?`<a class="in-badge" href="${esc(lead.LinkedInProfileUrl)}" target="_blank" rel="noopener" title="Open LinkedIn Profile">in</a>`
+      :'';
+    const nameHtml=lead.NameUrl
+      ? `<a href="${esc(lead.NameUrl)}" target="_blank" rel="noopener" title="Click for Sales Navigator Profile">${esc(lead.Name||'Unknown')}</a>${linkedInBadge}`
+      : esc(lead.Name||'Unknown');
+
+    // Middle column: CP, Region, Sources
+    let midHtml='';
+    if(lead.CP) midHtml+=`<div class="mid-item"><div class="mid-label">CP</div><span class="chip chip-cp">${esc(lead.CP)}</span></div>`;
+    if(lead.Region) midHtml+=`<div class="mid-item"><div class="mid-label">Region</div><span class="chip">${esc(lead.Region)}</span></div>`;
+    let badges='';
+    if(lead.hasSchool) badges+=`<span class="badge badge-school" title="Attended a solid Christian college">Christian College</span>`;
+    if(lead.hasGroup)  badges+=`<span class="badge badge-group" title="Member of an overt Christian LinkedIn group">Christian Group</span>`;
+    if(lead.hasKeywords) badges+=`<span class="badge badge-keywords" title="Profile has overt Christian wording">Keywords</span>`;
+    midHtml+=`<div class="mid-item"><div class="mid-label">Sources</div><div class="source-badges">${badges||'<span style="font-size:11px;color:var(--text4);font-family:\'DM Mono\',monospace;">—</span>'}</div></div>`;
+
+    // Right column: Connections 2-col grid
+    let connectionsHtml='';
+    const hasAnyConnections=lead.MutualConnectionsUrl||lead.connections.length>0;
+    const oneCol=lead.connections.length<=1&&!lead.MutualConnectionsUrl;
+    const mutualLabel=lead.MutualCount?`Mutual Connections [${esc(lead.MutualCount)} Total]`:'Mutual Connections';
+    if(hasAnyConnections){
+      let items='';
+      if(lead.MutualConnectionsUrl){
+        items+=`<div class="mutual-full"><a class="mutual-link" href="${esc(lead.MutualConnectionsUrl)}" target="_blank" rel="noopener">⇌ View All Mutual Connections</a></div>`;
+      }
+      lead.connections.forEach(c=>{
+        const salesNavUrl=c.salesNavUrl||c.linkedInUrl;
+        const linkedInUrl=c.linkedInUrl;
+        
+	const displayName=c.name.split(',')[0].trim();
+
+	const nameLink=salesNavUrl
+          ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click to open Sales Navigator profile">${esc(displayName)}</a>`
+          : `<span class="connection-name">${esc(displayName)}</span>`;
+        const inBadge=linkedInUrl
+          ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Click to open LinkedIn profile">in</a>`
+          : '';
+        items+=`<div class="connection-item">${nameLink}${inBadge}</div>`;
+      });
+      connectionsHtml=`
+        <div class="connections-section">
+          <div class="connections-label">${mutualLabel}</div>
+          <div class="connections-grid${oneCol?' one-col':''}">${items}</div>
+        </div>`;
+    }else{
+      connectionsHtml=`<div class="connections-section"><div class="connections-label">${mutualLabel}</div><div class="no-connections">No named connections available</div></div>`;
+    }
+
+    card.innerHTML=`
+      <div class="card-header">
+        <div class="card-name">${nameHtml}</div>
+        <div class="card-role">${esc(lead.Role||'—')}</div>
+        <div class="card-company">${esc(lead.Company||'—')}</div>
+        <div class="card-location">${esc(lead.Location||'—')}${lead.State?' · '+esc(lead.State):''}</div>
+      </div>
+      <div class="card-mid">${midHtml}</div>
+      <div class="card-body">${connectionsHtml}</div>
+    `;
+
+    grid.appendChild(card);
+  });
+
+  renderPagination(total);
+}
+
+function renderPagination(total){
+  const pages=Math.ceil(total/PAGE_SIZE);
+  const el=$('pagination');
+  if(pages<=1){el.innerHTML='';return;}
+  let html=`<button class="page-btn" ${page===1?'disabled':''} onclick="goPage(${page-1})">← Prev</button>`;
+  for(let i=1;i<=pages;i++){
+    if(pages>7&&i>2&&i<pages-1&&Math.abs(i-page)>1){if(i===3||i===pages-2)html+='<span style="color:var(--text3);padding:0 4px">…</span>';continue;}
+    html+=`<button class="page-btn ${i===page?'active':''}" onclick="goPage(${i})">${i}</button>`;
+  }
+  html+=`<button class="page-btn" ${page===pages?'disabled':''} onclick="goPage(${page+1})">Next →</button>`;
+  el.innerHTML=html;
+}
+window.goPage=p=>{page=p;renderCards();window.scrollTo(0,0);};
+
+// ══════════════════════════════════════════════
+//  DOWNLOAD — hand-built XLSX with real hyperlinks
+// ══════════════════════════════════════════════
+
+// Build XLSX as a ZIP manually so hyperlinks actually work in Excel
+function buildXlsxWithHyperlinks(headers, dataRows, hyperlinkColIndices, dateColIdx){
+  // Shared strings table
+  const sst=[];
+  const sstMap={};
+  function si(s){
+    const v=String(s||'');
+    if(sstMap[v]===undefined){sstMap[v]=sst.length;sst.push(v);}
+    return sstMap[v];
+  }
+
+  // Build sheet XML and collect hyperlinks
+  let sheetXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  sheetXml+='<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">';
+  sheetXml+='<sheetData>';
+
+  const rels=[];
+  let rIdCounter=1;
+
+  // Header row
+  sheetXml+='<row r="1">';
+  headers.forEach((h,ci)=>{
+    const col=colName(ci);
+    sheetXml+=`<c r="${col}1" t="s"><v>${si(h)}</v></c>`;
+  });
+  sheetXml+='</row>';
+
+  // Data rows
+  dataRows.forEach((row,ri)=>{
+    const rowNum=ri+2;
+    sheetXml+=`<row r="${rowNum}">`;
+    headers.forEach((h,ci)=>{
+      const col=colName(ci);
+      const rawCell=String(row[ci]||'');
+      const isHyperlink=hyperlinkColIndices.includes(ci);
+      const isDate=ci===dateColIdx;
+
+      if(isHyperlink){
+        const url=extractUrl(rawCell)||(rawCell.startsWith('http')?rawCell:'');
+        const display=extractName(rawCell)||url||rawCell;
+        sheetXml+=`<c r="${col}${rowNum}" t="s"><v>${si(display)}</v></c>`;
+        if(url){
+          const rId='rId'+rIdCounter++;
+          rels.push({rId,url});
+          // hyperlink element added after sheetData
+        }
+      } else {
+        // Force date to string, everything else as string
+        sheetXml+=`<c r="${col}${rowNum}" t="s"><v>${si(isDate?rawCell:rawCell)}</v></c>`;
+      }
+    });
+    sheetXml+='</row>';
+  });
+
+  sheetXml+='</sheetData>';
+
+  // Hyperlinks section — this is what makes them clickable in Excel
+  if(rels.length>0){
+    sheetXml+='<hyperlinks>';
+    // Re-derive cell refs for hyperlinks
+    let rIdIdx=0;
+    dataRows.forEach((row,ri)=>{
+      const rowNum=ri+2;
+      hyperlinkColIndices.forEach(ci=>{
+        const rawCell=String(row[ci]||'');
+        const url=extractUrl(rawCell)||(rawCell.startsWith('http')?rawCell:'');
+        if(url){
+          const col=colName(ci);
+          sheetXml+=`<hyperlink ref="${col}${rowNum}" r:id="${rels[rIdIdx++].rId}"/>`;
+        }
+      });
+    });
+    sheetXml+='</hyperlinks>';
+  }
+
+  sheetXml+='</worksheet>';
+
+  // SST XML
+  let sstXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  sstXml+=`<sst xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" count="${sst.length}" uniqueCount="${sst.length}">`;
+  sst.forEach(s=>{
+    sstXml+=`<si><t xml:space="preserve">${xmlEsc(s)}</t></si>`;
+  });
+  sstXml+='</sst>';
+
+  // Sheet relationships XML
+  let sheetRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+  sheetRelsXml+='<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">';
+  rels.forEach(r=>{
+    sheetRelsXml+=`<Relationship Id="${r.rId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${xmlEsc(r.url)}" TargetMode="External"/>`;
+  });
+  sheetRelsXml+='</Relationships>';
+
+  // Workbook XML
+  const wbXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Leads" sheetId="1" r:id="rId1"/></sheets></workbook>';
+
+  // Workbook relationships
+  const wbRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/sharedStrings" Target="sharedStrings.xml"/></Relationships>';
+
+  // Content types
+  const ctXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/sharedStrings.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sharedStrings+xml"/></Types>';
+
+  // Root relationships
+  const rootRelsXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+
+  // Build ZIP using JSZip-compatible manual approach via fflate (included via XLSX.js internals)
+  // Use XLSX.js zip writer since it's already loaded
+  const files={
+    '[Content_Types].xml':ctXml,
+    '_rels/.rels':rootRelsXml,
+    'xl/workbook.xml':wbXml,
+    'xl/_rels/workbook.xml.rels':wbRelsXml,
+    'xl/sharedStrings.xml':sstXml,
+    'xl/worksheets/sheet1.xml':sheetXml,
+  };
+  if(rels.length>0){
+    files['xl/worksheets/_rels/sheet1.xml.rels']=sheetRelsXml;
+  }
+
+  // Use the zip writer bundled with XLSX.js
+  const zip=XLSX.utils.book_new().__zip||null;
+  // Fallback: build using Uint8Array zip manually
+  return buildZip(files);
+}
+
+function colName(idx){
+  let s='';let i=idx+1;
+  while(i>0){s=String.fromCharCode(64+(i%26||26))+s;i=Math.floor((i-1)/26);}
+  return s;
+}
+
+function xmlEsc(s){
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&apos;');
+}
+
+function buildZip(files){
+  // Simple ZIP builder — store method (no compression) for simplicity
+  const enc=new TextEncoder();
+  const entries=[];
+  const central=[];
+  let offset=0;
+
+  for(const [name,content] of Object.entries(files)){
+    const nameBuf=enc.encode(name);
+    const dataBuf=enc.encode(content);
+    const crc=crc32(dataBuf);
+    const local=new Uint8Array(30+nameBuf.length+dataBuf.length);
+    const dv=new DataView(local.buffer);
+    // Local file header signature
+    dv.setUint32(0,0x04034b50,true);
+    dv.setUint16(4,20,true); // version needed
+    dv.setUint16(6,0,true);  // flags
+    dv.setUint16(8,0,true);  // compression: store
+    dv.setUint16(10,0,true); // mod time
+    dv.setUint16(12,0,true); // mod date
+    dv.setUint32(14,crc,true);
+    dv.setUint32(18,dataBuf.length,true);
+    dv.setUint32(22,dataBuf.length,true);
+    dv.setUint16(26,nameBuf.length,true);
+    dv.setUint16(28,0,true);
+    local.set(nameBuf,30);
+    local.set(dataBuf,30+nameBuf.length);
+
+    // Central directory entry
+    const cent=new Uint8Array(46+nameBuf.length);
+    const cdv=new DataView(cent.buffer);
+    cdv.setUint32(0,0x02014b50,true);
+    cdv.setUint16(4,20,true);
+    cdv.setUint16(6,20,true);
+    cdv.setUint16(8,0,true);
+    cdv.setUint16(10,0,true);
+    cdv.setUint16(12,0,true);
+    cdv.setUint16(14,0,true);
+    cdv.setUint32(16,crc,true);
+    cdv.setUint32(20,dataBuf.length,true);
+    cdv.setUint32(24,dataBuf.length,true);
+    cdv.setUint16(28,nameBuf.length,true);
+    cdv.setUint16(30,0,true);
+    cdv.setUint16(32,0,true);
+    cdv.setUint16(34,0,true);
+    cdv.setUint16(36,0,true);
+    cdv.setUint32(38,0,true);
+    cdv.setUint32(42,offset,true);
+    cent.set(nameBuf,46);
+
+    entries.push(local);
+    central.push(cent);
+    offset+=local.length;
+  }
+
+  const centralBuf=concat(central);
+  const eocd=new Uint8Array(22);
+  const edv=new DataView(eocd.buffer);
+  edv.setUint32(0,0x06054b50,true);
+  edv.setUint16(4,0,true);
+  edv.setUint16(6,0,true);
+  edv.setUint16(8,entries.length,true);
+  edv.setUint16(10,entries.length,true);
+  edv.setUint32(12,centralBuf.length,true);
+  edv.setUint32(16,offset,true);
+  edv.setUint16(20,0,true);
+
+  return concat([...entries,centralBuf,eocd]);
+}
+
+function concat(arrays){
+  const total=arrays.reduce((s,a)=>s+a.length,0);
+  const out=new Uint8Array(total);
+  let pos=0;
+  for(const a of arrays){out.set(a,pos);pos+=a.length;}
+  return out;
+}
+
+function crc32(buf){
+  let crc=0xFFFFFFFF;
+  for(let i=0;i<buf.length;i++){
+    crc^=buf[i];
+    for(let j=0;j<8;j++) crc=(crc>>>1)^(crc&1?0xEDB88320:0);
+  }
+  return(crc^0xFFFFFFFF)>>>0;
+}
+
+$('btnDownload').addEventListener('click',async()=>{
+  if(!filteredLeads.length){showToast('No leads to download.','err');return;}
+  showToast('Preparing download…');
+
+  try{
+    const filteredKeys=new Set(filteredLeads.map(l=>l._key));
+
+    const formulaRows=await readSheetWithFormulas(LEADS_TAB);
+    if(!formulaRows||formulaRows.length<2){showToast('No data to download.','err');return;}
+
+    const headers=formulaRows[0];
+    const profileLinkIdx=1;
+
+    const isAdminDlFilter=session.regions&&session.regions[0]==='ALL';
+    const myRegionsDl=(session.regions||[session.region||'']).map(r=>r.toLowerCase().trim());
+
+    const dataRows=formulaRows.slice(1).filter(row=>{
+      if(!isAdminDlFilter){
+        const regionIdx=headers.findIndex(h=>String(h).trim()==='REGION (auto)');
+        if(regionIdx>-1){
+          const rv=String(row[regionIdx]||'').toLowerCase().trim();
+          if(!myRegionsDl.includes(rv))return false;
+        }
+      }
+      const profileCell=row[profileLinkIdx]||'';
+      const profileUrl=extractUrl(profileCell)||profileCell;
+      return filteredKeys.has(profileUrl)||filteredKeys.has(`__nokey_${formulaRows.indexOf(row)-1}`);
+    });
+
+    const hyperlinkColIndices=[0,1,9,10,11]; // A,B,J,K,L
+    const dateColIdx=headers.findIndex(h=>String(h).trim()==='DATE');
+
+    // Build filename: TAW_Leads_[regions]_[username]_[active filters]_[date].xlsx
+    const isAdminDl=session.regions&&session.regions[0]==='ALL';
+    const regionPart=isAdminDl?'ALL':(session.regions||[]).join('-').replace(/\s+/g,'_');
+    const userPart=session.username||'';
+    const today=new Date().toISOString().slice(0,10);
+    const filterParts=[];
+    const fComp=$('fCompany').value.trim(); if(fComp)filterParts.push('Co-'+fComp.replace(/\s+/g,'_'));
+    const fRole=$('fRole').value.trim(); if(fRole)filterParts.push('Role-'+fRole.replace(/\s+/g,'_'));
+    const fLoc=$('fLocation').value.trim(); if(fLoc)filterParts.push('Loc-'+fLoc.replace(/\s+/g,'_'));
+    const fSrc=$('fSource').value.trim(); if(fSrc)filterParts.push('Src-'+fSrc.replace(/\s+/g,'_'));
+    const filterStr=filterParts.length>0?'_'+filterParts.join('_'):'';
+    const filename=`TAW_Leads_${regionPart}_${userPart}${filterStr}_${today}.xlsx`;
+
+    const zipBytes=buildXlsxWithHyperlinks(headers,dataRows,hyperlinkColIndices,dateColIdx);
+    const blob=new Blob([zipBytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;a.download=filename;a.click();
+    setTimeout(()=>URL.revokeObjectURL(url),5000);
+    showToast('Download started!');
+  }catch(e){
+    showToast('Download error: '+e.message,'err');
+    console.error(e);
+  }
+});
+
+// ══════════════════════════════════════════════
+//  SIGN OUT
+// ══════════════════════════════════════════════
+$('btnSignOut').addEventListener('click',()=>{
+  sessionStorage.removeItem('taw_dash_session');
+  sessionStorage.removeItem('taw_dash_token');
+  location.reload();
+});
+
+// ══════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════
+const stored=sessionStorage.getItem('taw_dash_session');
+if(stored){try{
+  session=JSON.parse(stored);
+  // Migrate old session format that doesn't have regions array
+  if(!session.regions){
+    session.regions=session.region==='ALL'?['ALL']:[session.region||''];
+    session.fullName=session.fullName||session.chapter||session.username||'';
+  }
+  startApp();
+}catch(e){sessionStorage.removeItem('taw_dash_session');}}
+</script>
+</body>
+</html>
