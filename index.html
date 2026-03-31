@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v3.6</title>
+<title>TAW Lead Repository — Upload Tool v3.8</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -78,7 +78,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="header">
     <img src="https://truthatwork.org/wp-content/uploads/2022/12/Truth-at-Work-Logo_KO-480x328.png" class="header-logo" alt="Truth at Work" />
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v3.7</span></h1>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v3.8</span></h1>
     <div class="header-sub">Upload Excel exports from Christian College, Christian Group, Christian Keywords, or Ranked Mutual Connections searches into the central Google Sheet</div>
   </div>
 
@@ -220,9 +220,7 @@ function handleFile(file){
 }
 
 function findHeaderRow(rows,product){
- 
-const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['name','role','company'],P05:['rank','name','role','company']};
-
+  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['name','role','company'],P05:['rank','name','role','company']};
   const need=targets[product];
   for(let i=0;i<rows.length;i++){
     const lower=rows[i].map(c=>String(c).toLowerCase().trim());
@@ -273,12 +271,12 @@ function mapRow(row,headers,product,links,sheetRow){
     const c=get(['champion']);champions=c.val;champCI=c.ci;
     mutualConnections=''; email=get(['email']).val;
   }else if(product==='P04'){
-    const n=get(['prospect']);name=n.val;nameCI=n.ci;
+    const n=get(['prospect','name']);name=n.val;nameCI=n.ci;
     role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
-    mutualCount='';
+    mutualCount=get(['mutual count']).val;
     const c1=get(['champions']),c2=get(['champion introducer']);
     champCI=c1.ci!==-1?c1.ci:c2.ci; champions=c1.val||c2.val;
-    mutualConnections=''; email=get(['email']).val;
+    const mc=get(['mutual connections']);mutualConnections=url(mc.ci); email=get(['email']).val;
   }else if(product==='P05'){
     const n=get(['name']);name=n.val;nameCI=n.ci;
     role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
