@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v3.8</title>
+<title>TAW Lead Repository — Upload Tool v4.0</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -49,6 +49,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 .dropzone-hint{font-size:12px;color:var(--text3);}
 .dropzone.has-file{border-style:solid;border-color:var(--green);background:rgba(110,231,183,0.06);}
 .dropzone.has-file .dropzone-label{color:var(--green2);font-weight:600;}
+.network-row{display:flex;align-items:center;gap:12px;margin-top:16px;}
+.network-label{font-size:13px;color:var(--text2);white-space:nowrap;flex-shrink:0;}
+.network-input{flex:1;background:rgba(0,0,0,0.2);border:1px solid var(--border2);border-radius:var(--radius);padding:8px 12px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text);outline:none;}
+.network-input:focus{border-color:var(--border3);}
+.network-hint{font-size:11px;color:var(--text3);margin-top:6px;}
 .preview-wrap{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
 .preview-table{width:100%;border-collapse:collapse;font-size:12px;}
 .preview-table th{background:var(--bg3);color:var(--gold);font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;padding:8px 12px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;}
@@ -78,7 +83,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="header">
     <img src="https://truthatwork.org/wp-content/uploads/2022/12/Truth-at-Work-Logo_KO-480x328.png" class="header-logo" alt="Truth at Work" />
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v3.8</span></h1>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v4.0</span></h1>
     <div class="header-sub">Upload Excel exports from Christian College, Christian Group, Christian Keywords, or Ranked Mutual Connections searches into the central Google Sheet</div>
   </div>
 
@@ -99,7 +104,7 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <button class="product-btn" data-product="P02"><div class="product-btn-label">Christian College</div><div class="product-btn-desc">Christian Colleges filter search</div></button>
       <button class="product-btn" data-product="P04"><div class="product-btn-label">Christian Group</div><div class="product-btn-desc">LinkedIn Groups filter search</div></button>
       <button class="product-btn" data-product="P01"><div class="product-btn-label">Christian Keywords</div><div class="product-btn-desc">Boolean keyword faith search</div></button>
-      <button class="product-btn" data-product="P05"><div class="product-btn-label">Ranked Mutual</div><div class="product-btn-desc">Mutual connection ranking export</div></button>
+      <button class="product-btn" data-product="RM"><div class="product-btn-label">Ranked Mutual</div><div class="product-btn-desc">Mutual connection ranking export</div></button>
     </div>
   </div>
 
@@ -111,6 +116,11 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
       <div class="dropzone-label">Drop your Excel file here or click to browse</div>
       <div class="dropzone-hint">.xlsx or .xls files only</div>
     </div>
+    <div class="network-row">
+      <span class="network-label">Whose Network:</span>
+      <input type="text" id="whoseNetwork" class="network-input" value="ACwAAADBugUBlmeaaq6uHUC69sFkGoqYQddplsY" placeholder="LinkedIn ID of person whose Sales Nav was used"/>
+    </div>
+    <div class="network-hint">Paste the LinkedIn ID of whoever was logged into Sales Navigator when this data was scraped.</div>
   </div>
 
   <div class="card hidden" id="previewCard">
@@ -145,11 +155,32 @@ const SHEET_NAME   = 'MEMBER LEADS';
 const SCOPES       = 'https://www.googleapis.com/auth/spreadsheets';
 const REDIRECT_URI = 'https://rewing57.github.io/taw-lead-repository/';
 
-const SHEET_COLS   = ['Name (Sales Nav Link)','LinkedIn Profile Link','Role','Company','Location','State','REGION (auto)','CP (auto)','# of Mutual Connections','Connection\\n (Sales Nav Link)','Mutual Connections\\n (Sales Nav Link)','Connection \\n (Raw LinkedIn Link)','SCHOOL SOURCE','GROUP SOURCE','KEYWORDS SOURCE','EMAIL','LinkedIn ID','STATUS','DATE'];
+// FIXED: column names use \n (newline) consistently — previously \\n caused handler mismatch
+// ADDED: WHOSE NETWORK as final column (col U)
+const SHEET_COLS = [
+  'Name (Sales Nav Link)',
+  'LinkedIn Profile Link',
+  'Role',
+  'Company',
+  'Location',
+  'State',
+  'REGION (auto)',
+  'CP (auto)',
+  '# of Mutual Connections',
+  'Connection\n (Sales Nav Link)',
+  'Mutual Connections\n (Sales Nav Link)',
+  'Connection \n (Raw LinkedIn Link)',
+  'SCHOOL SOURCE',
+  'GROUP SOURCE',
+  'KEYWORDS SOURCE',
+  'EMAIL',
+  'LinkedIn ID',
+  'STATUS',
+  'DATE',
+  'WHOSE NETWORK'
+];
 
-
-// Source label lookup by internal product code
-const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group', P05:'Ranked Mutual Connections'};
+const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group', RM:'Ranked Mutual Connections'};
 
 let accessToken=null, selectedProduct=null, parsedRows=[];
 
@@ -220,7 +251,7 @@ function handleFile(file){
 }
 
 function findHeaderRow(rows,product){
-  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['name','role','company'],P05:['rank','name','role','company']};
+  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['prospect','role','company'],RM:['rank','name','role','company']};
   const need=targets[product];
   for(let i=0;i<rows.length;i++){
     const lower=rows[i].map(c=>String(c).toLowerCase().trim());
@@ -255,7 +286,7 @@ function mapRow(row,headers,product,links,sheetRow){
   };
   const url=ci=>ci===-1?'':(links[colLetter(ci)+sheetRow]||'');
 
-  let name,role,company,location,mutualCount,champions,mutualConnections,email,nameCI,champCI;
+  let name,role,company,location,mutualCount,champions,mutualConnections,email,nameCI,champCI,ChampionLinkedInUrl;
 
   if(product==='P01'){
     const n=get(['prospect']);name=n.val;nameCI=n.ci;
@@ -273,11 +304,11 @@ function mapRow(row,headers,product,links,sheetRow){
   }else if(product==='P04'){
     const n=get(['prospect','name']);name=n.val;nameCI=n.ci;
     role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
-    mutualCount=get(['mutual count']).val;
-    const c1=get(['champions']),c2=get(['champion introducer']);
-    champCI=c1.ci!==-1?c1.ci:c2.ci; champions=c1.val||c2.val;
-    const mc=get(['mutual connections']);mutualConnections=url(mc.ci); email=get(['email']).val;
-  }else if(product==='P05'){
+    mutualCount=get(['champions']).val;
+    const ci=get(['champion introducer']);champions=ci.val;champCI=ci.ci;
+    const cp=get(['champion profile']);ChampionLinkedInUrl=cp.val;
+    mutualConnections=''; email=get(['email']).val;
+  }else if(product==='RM'){
     const n=get(['name']);name=n.val;nameCI=n.ci;
     role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
     mutualCount=get(['mutual count']).val;
@@ -288,19 +319,10 @@ function mapRow(row,headers,product,links,sheetRow){
 
   if(!name)return null;
 
-  // Extract the full Sales Nav URL from the Name cell hyperlink
   const nameUrl=url(nameCI);
-
-  // LinkedIn Profile Link: full Sales Nav URL (used for both col C hyperlink and col B name hyperlink)
   const profileUrl=nameUrl||'';
-
-  // LinkedIn ID: raw ID segment only (stripped from URL) — used as dedup key
   const linkedinId=extractId(profileUrl);
-
-  // State: extracted from location string
   const state=extractState(location);
-
-  // Source: derived from product selection
   const source=SOURCE_LABEL[product]||'';
 
   return{
@@ -314,7 +336,7 @@ function mapRow(row,headers,product,links,sheetRow){
     'Mutual Count':mutualCount,
     Champions:champions,
     ChampionUrl:url(champCI),
-    ChampionLinkedInUrl:'',
+    ChampionLinkedInUrl:ChampionLinkedInUrl||'',
     'Mutual Connections':mutualConnections,
     Email:email,
     Source:source,
@@ -334,18 +356,26 @@ function groupRows(rows){
       const ec=parseInt(e['Mutual Count'])||0,nc=parseInt(r['Mutual Count'])||0;
       if(nc>ec)e['Mutual Count']=r['Mutual Count'];
       if(!e.Email&&r.Email)e.Email=r.Email;
+      if(!e['Mutual Connections']&&r['Mutual Connections'])e['Mutual Connections']=r['Mutual Connections'];
     }
   }
   return Array.from(map.values());
 }
 
-// Extract raw ID segment from a Sales Nav or LinkedIn URL
 function extractId(profileUrl){
   if(profileUrl){
     const m1=profileUrl.match(/\/sales\/lead\/([^,?\s]+)/i); if(m1)return m1[1];
     const m2=profileUrl.match(/linkedin\.com\/in\/([^/?]+)/i); if(m2)return m2[1];
   }
   return '';
+}
+
+// Merge WHOSE NETWORK: comma-separated IDs, no duplicates
+function mergeWhoseNetwork(existing, incoming){
+  if(!incoming)return existing||'';
+  const parts=(existing||'').split(',').map(x=>x.trim()).filter(Boolean);
+  if(!parts.includes(incoming))parts.push(incoming);
+  return parts.join(',');
 }
 
 // Full US state name → abbreviation map, plus metro area patterns
@@ -363,7 +393,6 @@ const STATE_NAME_MAP={
   'district of columbia':'DC','washington dc':'DC','washington d.c.':'DC'
 };
 
-// Metro area / "Greater X" patterns → state abbreviation
 const METRO_MAP={
   'indianapolis':'IN','greater indianapolis':'IN','indy':'IN',
   'chicago':'IL','greater chicago':'IL','chicagoland':'IL',
@@ -411,27 +440,19 @@ const METRO_MAP={
 function extractState(loc){
   if(!loc)return'';
   const locLower=loc.toLowerCase().trim();
-
-  // 1. Try to match a full US state name anywhere in the string
   for(const [name,abbr] of Object.entries(STATE_NAME_MAP)){
-    // Match as a whole word/phrase in the location string
     const re=new RegExp('\\b'+name.replace(/\./g,'\\.')+'\\b','i');
     if(re.test(locLower))return abbr;
   }
-
-  // 2. Try 2-letter abbreviation pattern: ", XX" or ", XX," or end of string
   const m=loc.match(/,\s*([A-Z]{2})(?:\s*,|\s*$)/);
   if(m){
     const ST=['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY','DC'];
     if(ST.includes(m[1]))return m[1];
   }
-
-  // 3. Try metro area / "Greater X" patterns
   for(const [metro,abbr] of Object.entries(METRO_MAP)){
     const re=new RegExp('\\b'+metro.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
     if(re.test(locLower))return abbr;
   }
-
   return'';
 }
 
@@ -442,10 +463,8 @@ function mergeChampions(a,b){
   return merged.join(', ');
 }
 
-// Build a HYPERLINK formula for Google Sheets
 function hyperlink(url,label){
   if(!url)return label||'';
-  // Escape double quotes inside url and label
   const u=url.replace(/"/g,'""');
   const l=String(label||url).replace(/"/g,'""');
   return `=HYPERLINK("${u}","${l}")`;
@@ -486,7 +505,10 @@ btnUpload.addEventListener('click',async()=>{
 });
 
 async function runUpload(){
+  const whoseNetworkId=($('whoseNetwork').value||'').trim();
+
   log(`Starting upload — ${parsedRows.length} records (${SOURCE_LABEL[selectedProduct]})`,'head');
+  if(whoseNetworkId)log(`Whose Network: ${whoseNetworkId}`);
   log('Reading existing sheet data…');setProgress(5);
   const existing=await readSheet();
   const existData=existing.length>1?existing.slice(1):[];
@@ -495,6 +517,7 @@ async function runUpload(){
   const headers=existing.length>0?existing[0]:SHEET_COLS;
   const dataRows=[...existData];
   const idCol=headers.indexOf('LinkedIn ID');
+  const wnCol=headers.indexOf('WHOSE NETWORK');
   const idMap={};
   dataRows.forEach((r,i)=>{const id=(r[idCol]||'').toString().trim();if(id)idMap[id]=i;});
   log(`Found ${Object.keys(idMap).length} existing LinkedIn IDs`,'ok');setProgress(25);
@@ -512,7 +535,6 @@ async function runUpload(){
       while(er.length<SHEET_COLS.length)er.push('');
       SHEET_COLS.forEach((col,ci)=>{
         if(col==='REGION (auto)'||col==='CP (auto)'||col==='STATUS')return;
-        // Name: rebuild =HYPERLINK() formula from incoming URL
         if(col==='Name (Sales Nav Link)'){
           const v=inc['Name'];
           const u=inc['LinkedIn Profile Link']||'';
@@ -520,19 +542,16 @@ async function runUpload(){
           else if(v&&!u&&!er[ci]){er[ci]=v;}
           return;
         }
-        // LinkedIn Profile Link: plain URL
         if(col==='LinkedIn Profile Link'){
           const u=inc['LinkedIn Profile Link']||'';
           if(u){er[ci]=u;}
           return;
         }
-        // Mutual Connections: write as =HYPERLINK() formula
         if(col==='Mutual Connections\n (Sales Nav Link)'){
           const u=inc['Mutual Connections']||'';
           if(u){er[ci]=hyperlink(u,'Mutual Connections');}
           return;
         }
-        // Connection (Sales Nav Link): write as =HYPERLINK() formula
         if(col==='Connection\n (Sales Nav Link)'){
           const v=inc['Champions']||'';
           const u=inc['ChampionUrl']||'';
@@ -540,13 +559,11 @@ async function runUpload(){
           else if(v&&!er[ci]){er[ci]=v;}
           return;
         }
-        // Connection (Raw LinkedIn Link): plain URL
         if(col==='Connection \n (Raw LinkedIn Link)'){
           const u=inc['ChampionLinkedInUrl']||'';
           if(u){er[ci]=u;}
           return;
         }
-        // Source columns
         if(col==='SCHOOL SOURCE'){if(inc['Source']==='Christian College')er[ci]='SCHOOL';return;}
         if(col==='GROUP SOURCE'){if(inc['Source']==='Christian Group')er[ci]='GROUP';return;}
         if(col==='KEYWORDS SOURCE'){if(inc['Source']==='Christian Keywords')er[ci]='KEYWORDS';return;}
@@ -556,6 +573,11 @@ async function runUpload(){
           return;
         }
         if(col==='EMAIL'){if(!er[ci]&&inc['Email'])er[ci]=inc['Email'];return;}
+        // WHOSE NETWORK: append incoming ID if not already present
+        if(col==='WHOSE NETWORK'){
+          er[ci]=mergeWhoseNetwork(er[ci],whoseNetworkId);
+          return;
+        }
         const v=inc[col];if(v!==undefined&&v!=='')er[ci]=v;
       });
       dataRows[ri]=er;updC++;
@@ -574,7 +596,6 @@ async function runUpload(){
 
   if(toAppend.length>0){
     log(`Appending ${toAppend.length} new rows…`);
-    const start=dataRows.length+1;
     const appendData=toAppend.map(r=>SHEET_COLS.map(col=>{
       if(col==='Name (Sales Nav Link)')return hyperlink(r['LinkedIn Profile Link']||'',r['Name']||'');
       if(col==='LinkedIn Profile Link')return r['LinkedIn Profile Link']||'';
@@ -601,6 +622,7 @@ async function runUpload(){
       if(col==='Location')return r['Location']||'';
       if(col==='State')return r['State']||'';
       if(col==='LinkedIn ID')return r['LinkedIn ID']||'';
+      if(col==='WHOSE NETWORK')return whoseNetworkId||'';
       return r[col]||'';
     }));
     await appendRows(appendData);
