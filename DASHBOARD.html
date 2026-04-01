@@ -122,8 +122,8 @@
     .connections-label{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.1em;text-transform:uppercase;color:var(--text3);text-align:right;}
     .connections-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;width:100%;}
     .connections-grid.one-col{grid-template-columns:1fr;}
-    .mutual-full{grid-column:1/-1;}
-    .mutual-link{display:flex;align-items:center;justify-content:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 10px;border-radius:4px;transition:all 0.15s;width:100%;}
+    .mutual-full{display:flex;justify-content:flex-end;margin-top:6px;}
+    .mutual-link{display:inline-flex;align-items:center;gap:5px;color:var(--gold);text-decoration:none;font-size:11px;font-family:'DM Mono',monospace;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);padding:5px 10px;border-radius:4px;transition:all 0.15s;}
     .mutual-link:hover{background:rgba(232,192,125,0.25);color:var(--gold2);}
     .connection-item{display:flex;align-items:center;gap:4px;justify-content:flex-end;}
     .connection-name{color:var(--text2);font-size:13px;}
@@ -756,8 +756,8 @@ function applyFiltersAndRender(){
   const keyMap={name:'Name',role:'Role',company:'Company',location:'Location'};
   filteredLeads.sort((a,b)=>{
     if(sortCol==='mutual'){
-      const av=a.MutualCount!==''?parseInt(a.MutualCount,10):0;
-      const bv=b.MutualCount!==''?parseInt(b.MutualCount,10):0;
+      const av=a.connections?a.connections.length:0;
+      const bv=b.connections?b.connections.length:0;
       return (bv-av)*sortDir;
     }
     if(sortCol==='miles'){
@@ -863,22 +863,15 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
     // Right column: Connections 2-col grid
     let connectionsHtml='';
     const hasAnyConnections=lead.MutualConnectionsUrl||lead.connections.length>0;
-    const oneCol=lead.connections.length<=1&&!lead.MutualConnectionsUrl;
+    const oneCol=lead.connections.length<=1;
     const _netBadges=(lead.WhoseNetwork||'').split(',').map(id=>id.trim()).filter(Boolean).map(id=>WHOSE_NETWORK_INDEX[id]).filter(Boolean).map(n=>`<sup style="font-size:9px;font-weight:700;color:var(--gold);opacity:0.9;margin-left:3px;">${n}</sup>`).join('');
-    const mutualLabel=lead.MutualCount?`Mutual Connections [${esc(lead.MutualCount)} Total]`:'Mutual Connections';
-
     if(hasAnyConnections){
       let items='';
-      if(lead.MutualConnectionsUrl){
-        items+=`<div class="mutual-full"><a class="mutual-link" href="${esc(lead.MutualConnectionsUrl)}" target="_blank" rel="noopener">⇌ View All Mutual Connections</a></div>`;
-      }
       lead.connections.forEach(c=>{
         const salesNavUrl=c.salesNavUrl||c.linkedInUrl;
         const linkedInUrl=c.linkedInUrl;
-        
-	const displayName=c.name.split(',')[0].trim();
-
-	const nameLink=salesNavUrl
+        const displayName=c.name.split(',')[0].trim();
+        const nameLink=salesNavUrl
           ? `<a class="connection-link" href="${esc(salesNavUrl)}" target="_blank" rel="noopener" title="Click to open Sales Navigator profile">${esc(displayName)}</a>`
           : `<span class="connection-name">${esc(displayName)}</span>`;
         const inBadge=linkedInUrl
@@ -886,13 +879,22 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
           : '';
         items+=`<div class="connection-item">${nameLink}${_netBadges}${inBadge}</div>`;
       });
+      const chipCount=lead.connections.length;
+      const countSpan=chipCount>0
+        ? ` <span style="color:var(--teal);font-weight:700;">[${chipCount} Total]</span>`
+        : ` <span style="color:var(--teal);font-weight:700;">[N/A Total]</span>`;
+      const viewAllLink=lead.MutualConnectionsUrl
+        ? `<div class="mutual-full"><a class="mutual-link" href="${esc(lead.MutualConnectionsUrl)}" target="_blank" rel="noopener">⇌ View All Mutual Connections</a></div>`
+        : '';
+      const gridHtml=chipCount>0?`<div class="connections-grid${oneCol?' one-col':''}">${items}</div>`:'';
       connectionsHtml=`
         <div class="connections-section">
-          <div class="connections-label">${mutualLabel}</div>
-          <div class="connections-grid${oneCol?' one-col':''}">${items}</div>
+          <div class="connections-label">Mutual Connections${countSpan}</div>
+          ${gridHtml}
+          ${viewAllLink}
         </div>`;
     }else{
-      connectionsHtml=`<div class="connections-section"><div class="connections-label">${mutualLabel}</div><div class="no-connections">No named connections available</div></div>`;
+      connectionsHtml=`<div class="connections-section"><div class="connections-label">Mutual Connections</div><div class="no-connections">No named connections available</div></div>`;
     }
 
     card.innerHTML=`
