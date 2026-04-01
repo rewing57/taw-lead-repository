@@ -851,6 +851,9 @@ function renderCards(){
     let midHtml='';
     if(lead.CP) midHtml+=`<div class="mid-item"><div class="mid-label">CP</div><span class="chip chip-cp">${esc(lead.CP)}</span></div>`;
     if(lead.Region) midHtml+=`<div class="mid-item"><div class="mid-label">Region</div><span class="chip">${esc(lead.Region)}</span></div>`;
+
+if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles to RT</div><span style="font-family:'DM Mono',monospace;font-size:12px;color:var(--text2);">[Miles Away: ${esc(lead.Miles)}]</span></div>`;
+
     let badges='';
     if(lead.hasSchool) badges+=`<span class="badge badge-school" title="Attended a solid Christian college">Christian College</span>`;
     if(lead.hasGroup)  badges+=`<span class="badge badge-group" title="Member of an overt Christian LinkedIn group">Christian Group</span>`;
