@@ -858,6 +858,8 @@ function renderCards(){
     let connectionsHtml='';
     const hasAnyConnections=lead.MutualConnectionsUrl||lead.connections.length>0;
     const oneCol=lead.connections.length<=1&&!lead.MutualConnectionsUrl;
+    const _netBadges=(lead.WhoseNetwork||'').split(',').map(id=>id.trim()).filter(Boolean).map(id=>WHOSE_NETWORK_INDEX[id]).filter(Boolean).map(n=>`<sup style="font-size:9px;font-weight:700;opacity:0.8;margin-left:2px;">${n}</sup>`).join('');
+    const mutualLabel=lead.MutualCount?`Mutual Connections [${esc(lead.MutualCount)} Total]${_netBadges}`:'Mutual Connections'+_netBadges;
 
 
 
