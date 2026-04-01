@@ -373,7 +373,9 @@ function extractId(profileUrl){
 // Merge WHOSE NETWORK: comma-separated IDs, no duplicates
 function mergeWhoseNetwork(existing, incoming){
   if(!incoming)return existing||'';
-  const parts=(existing||'').split(',').map(x=>x.trim()).filter(Boolean);
+  
+const parts=String(existing||'').split(',').map(x=>x.trim()).filter(Boolean);
+
   if(!parts.includes(incoming))parts.push(incoming);
   return parts.join(',');
 }
