@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>TAW Lead Repository — Upload Tool v4.2</title>
+<title>TAW Lead Repository — Upload Tool v4.3</title>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
@@ -83,8 +83,8 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
   <div class="header">
     <img src="https://truthatwork.org/wp-content/uploads/2022/12/Truth-at-Work-Logo_KO-480x328.png" class="header-logo" alt="Truth at Work" />
     <div class="header-eyebrow">Truth at Work</div>
-    <h1>Lead <span>Repository</span> <span class="version-tag">v4.2</span></h1>
-    <div class="header-sub">Upload Excel exports from Christian College, Christian Group, Christian Keywords, or Ranked Mutual Connections searches into the central Google Sheet</div>
+    <h1>Lead <span>Repository</span> <span class="version-tag">v4.3</span></h1>
+    <div class="header-sub">Upload Excel exports from Champions or Ranked Mutual searches — College, Group, or Keywords — into the central Google Sheet</div>
   </div>
 
   <div class="auth-bar">
@@ -100,11 +100,17 @@ body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellips
 
   <div class="card">
     <div class="card-title">Step 1 — Select Source Type</div>
-    <div class="product-grid" style="grid-template-columns:repeat(4,1fr);">
-      <button class="product-btn" data-product="P02"><div class="product-btn-label">Christian College</div><div class="product-btn-desc">Christian Colleges filter search</div></button>
-      <button class="product-btn" data-product="P04"><div class="product-btn-label">Christian Group</div><div class="product-btn-desc">LinkedIn Groups filter search</div></button>
-      <button class="product-btn" data-product="P01"><div class="product-btn-label">Christian Keywords</div><div class="product-btn-desc">Boolean keyword faith search</div></button>
-      <button class="product-btn" data-product="RM"><div class="product-btn-label">Ranked Mutual</div><div class="product-btn-desc">Mutual connection ranking export</div></button>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Champions</div>
+    <div class="product-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:16px;">
+      <button class="product-btn" data-product="P02"><div class="product-btn-label">Christian College</div><div class="product-btn-desc">Champion search via school filter</div></button>
+      <button class="product-btn" data-product="P04"><div class="product-btn-label">Christian Group</div><div class="product-btn-desc">Champion search via LinkedIn group</div></button>
+      <button class="product-btn" data-product="P01"><div class="product-btn-label">Christian Keywords</div><div class="product-btn-desc">Champion search via keyword filter</div></button>
+    </div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:8px;">Ranked Mutual</div>
+    <div class="product-grid" style="grid-template-columns:repeat(3,1fr);">
+      <button class="product-btn" data-product="RM-SCHOOL"><div class="product-btn-label">Mutual — School</div><div class="product-btn-desc">Ranked mutual, school filter active</div></button>
+      <button class="product-btn" data-product="RM-GROUP"><div class="product-btn-label">Mutual — Group</div><div class="product-btn-desc">Ranked mutual, group filter active</div></button>
+      <button class="product-btn" data-product="RM-KEYWORDS"><div class="product-btn-label">Mutual — Keywords</div><div class="product-btn-desc">Ranked mutual, keyword filter active</div></button>
     </div>
   </div>
 
@@ -181,7 +187,7 @@ const SHEET_COLS = [
   'WHOSE NETWORK'
 ];
 
-const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group', RM:'Ranked Mutual Connections'};
+const SOURCE_LABEL = {P01:'Christian Keywords', P02:'Christian College', P04:'Christian Group', 'RM-SCHOOL':'Christian College', 'RM-GROUP':'Christian Group', 'RM-KEYWORDS':'Christian Keywords'};
 
 let accessToken=null, selectedProduct=null, parsedRows=[];
 
@@ -252,7 +258,7 @@ function handleFile(file){
 }
 
 function findHeaderRow(rows,product){
-  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['prospect','role','company'],RM:['rank','name','role','company']};
+  const targets={P01:['prospect','role','company'],P02:['name','title','company'],P04:['prospect','role','company'],RM:['rank','name','role','company'],'RM-SCHOOL':['rank','name','role','company'],'RM-GROUP':['rank','name','role','company'],'RM-KEYWORDS':['rank','name','role','company']};
   const need=targets[product];
   for(let i=0;i<rows.length;i++){
     const lower=rows[i].map(c=>String(c).toLowerCase().trim());
@@ -309,7 +315,7 @@ function mapRow(row,headers,product,links,sheetRow){
     const ci=get(['champion introducer']);champions=ci.val;champCI=ci.ci;
     const cp=get(['champion profile']);ChampionLinkedInUrl=cp.val;
     mutualConnections=''; email=get(['email']).val;
-  }else if(product==='RM'){
+  }else if(product==='RM'||product==='RM-SCHOOL'||product==='RM-GROUP'||product==='RM-KEYWORDS'){
     const n=get(['name']);name=n.val;nameCI=n.ci;
     role=get(['role']).val; company=get(['company']).val; location=get(['location']).val;
     mutualCount=get(['mutual count']).val;
