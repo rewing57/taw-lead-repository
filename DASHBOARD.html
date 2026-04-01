@@ -299,7 +299,10 @@
     </div>
 
     <div class="count-bar">
-      <div class="lead-count" id="leadCount"></div>
+      <div style="display:flex;align-items:center;gap:16px;">
+        <div class="lead-count" id="leadCount"></div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);"><sup style="font-size:9px;font-weight:700;color:var(--gold);">1</sup> Ewing &nbsp;·&nbsp; <sup style="font-size:9px;font-weight:700;color:var(--gold);">2</sup> Diercks</div>
+      </div>
     </div>
 
     <div id="loadingWrap" class="loading-wrap">
@@ -858,12 +861,8 @@ function renderCards(){
     let connectionsHtml='';
     const hasAnyConnections=lead.MutualConnectionsUrl||lead.connections.length>0;
     const oneCol=lead.connections.length<=1&&!lead.MutualConnectionsUrl;
-    const _netBadges=(lead.WhoseNetwork||'').split(',').map(id=>id.trim()).filter(Boolean).map(id=>WHOSE_NETWORK_INDEX[id]).filter(Boolean).map(n=>`<sup style="font-size:9px;font-weight:700;opacity:0.8;margin-left:2px;">${n}</sup>`).join('');
-    const mutualLabel=lead.MutualCount?`Mutual Connections [${esc(lead.MutualCount)} Total]${_netBadges}`:'Mutual Connections'+_netBadges;
-
-
-
-
+    const _netBadges=(lead.WhoseNetwork||'').split(',').map(id=>id.trim()).filter(Boolean).map(id=>WHOSE_NETWORK_INDEX[id]).filter(Boolean).map(n=>`<sup style="font-size:9px;font-weight:700;color:var(--gold);opacity:0.9;margin-left:3px;">${n}</sup>`).join('');
+    const mutualLabel=lead.MutualCount?`Mutual Connections [${esc(lead.MutualCount)} Total]`:'Mutual Connections';
 
     if(hasAnyConnections){
       let items='';
@@ -882,7 +881,7 @@ function renderCards(){
         const inBadge=linkedInUrl
           ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Click to open LinkedIn profile">in</a>`
           : '';
-        items+=`<div class="connection-item">${nameLink}${inBadge}</div>`;
+        items+=`<div class="connection-item">${nameLink}${_netBadges}${inBadge}</div>`;
       });
       connectionsHtml=`
         <div class="connections-section">
