@@ -475,7 +475,7 @@ function mergeChampions(a,b){
 function hyperlink(url,label){
   if(!url)return label||'';
   const u=url.replace(/"/g,'""');
-  const l=String(label||url).replace(/"/g,'""');
+  const l = String(label || url).replace(/"/g, "'");
   return `=HYPERLINK("${u}","${l}")`;
 }
 
