@@ -513,9 +513,12 @@ async function loadLeads(){
 
           Status:row[ci['STATUS']]||row[ci['Status']]||'',
           Date:row[ci['DATE']]||'',
+          
+          WhoseNetwork: row[ci['WHOSE NETWORK']] || '',
+
           hasSchool:false,
 
-WhoseNetwork: row[ci['WHOSE NETWORK']] || '',
+          
 
           hasGroup:false,
           hasKeywords:false,
