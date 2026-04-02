@@ -736,8 +736,8 @@ function applyFiltersAndRender(){
       const count=(r.hasSchool?1:0)+(r.hasGroup?1:0)+(r.hasKeywords?1:0);
       if(count<2)return false;
     }
-    if(selectedRegions.size>0&&r.Region&&!selectedRegions.has(r.Region.toUpperCase()))return false;
-    if(selectedCPs.size>0&&r.CP&&!selectedCPs.has(r.CP.toUpperCase()))return false;
+    if(selectedRegions.size===0||!selectedRegions.has((r.Region||'').toUpperCase()))return false;
+    if(selectedCPs.size===0||!selectedCPs.has((r.CP||'').toUpperCase()))return false;
     if(fDateFrom||fDateTo){
       const d=parseDate(r.Date);
       if(d){
