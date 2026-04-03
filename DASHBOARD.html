@@ -212,7 +212,7 @@
     <div class="topbar-right">
       <span class="topbar-user" id="topbarUser"></span>
       <span class="region-badge" id="regionBadge">—</span>
-      <span class="topbar-version">v6.7</span>
+      <span class="topbar-version">v7.0</span>
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
       <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
     </div>
@@ -909,7 +909,11 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
         <div class="card-name">${nameHtml}</div>
         <div class="card-role">${esc(lead.Role||'—')}</div>
         <div class="card-company">${esc(lead.Company||'—')}</div>
-        <div class="card-location">${esc(lead.Location||'—')}${lead.State?' · '+esc(lead.State):''}</div>
+                    
+
+<div class="card-location">${esc(lead.Location||'—')}</div>
+ 
+
       </div>
       <div class="card-mid">${midHtml}</div>
       <div class="card-body">${connectionsHtml}</div>
