@@ -304,8 +304,8 @@
       <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
         <div style="display:flex;align-items:center;gap:16px;">
           <div class="lead-count" id="leadCount"></div>
-          <span id="leadCountChampion" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--teal);"></span>
-          <span id="leadCountMutual" style="font-family:'DM Mono',monospace;font-size:12px;font-weight:600;color:var(--gold);"></span>
+          <span id="leadCountChampion" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#5ec269;"></span>
+          <span id="leadCountMutual" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--gold);"></span>
         </div>
         <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;"><sup style="font-size:9px;font-weight:700;color:var(--gold);">1</sup> Ewing &nbsp;·&nbsp; <sup style="font-size:9px;font-weight:700;color:var(--gold);">2</sup> Diercks</div>
       </div>
@@ -553,13 +553,15 @@ async function loadLeads(){
       const rowNetwork=String(row[ci['WHOSE NETWORK']]||'').trim().toUpperCase();
 
       if(champName && champName.toLowerCase()!=='mutual connections'){
-        const exists=lead.connections.some(c=>c.name===champName&&c.network===rowNetwork);
-        if(!exists){
+        const existing=lead.connections.find(c=>c.name===champName);
+        if(existing){
+          if(rowNetwork && !existing.networks.includes(rowNetwork)) existing.networks.push(rowNetwork);
+        } else {
           lead.connections.push({
             name:champName,
             salesNavUrl:champSnUrl,
             linkedInUrl:champLiUrl,
-            network:rowNetwork
+            networks:rowNetwork?[rowNetwork]:[]
           });
         }
       }
@@ -833,8 +835,8 @@ function renderCards(){
 $('leadCount').textContent=`${total.toLocaleString()} lead${total!==1?'s':''} ${total!==allLeads.length?`(filtered from ${allLeads.length.toLocaleString()})`:''} `;
   const withChampion=filteredLeads.filter(l=>l.connections&&l.connections.length>0).length;
   const withoutChampion=total-withChampion;
-  $('leadCountChampion').textContent=withChampion>0?`| ${withChampion.toLocaleString()} With Named Connection`:'';
-  $('leadCountMutual').textContent=withoutChampion>0?`| ${withoutChampion.toLocaleString()} With No Named Connection`:'';
+  $('leadCountChampion').innerHTML=withChampion>0?`<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>${withChampion.toLocaleString()} With Named Connection`:'';
+  $('leadCountMutual').innerHTML=withoutChampion>0?`<span style="color:rgba(255,255,255,0.2);margin:0 6px;">|</span>${withoutChampion.toLocaleString()} With No Named Connection`:'';
 
 
 
@@ -894,9 +896,11 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
         const inBadge=linkedInUrl
           ? `<a class="in-badge" href="${esc(linkedInUrl)}" target="_blank" rel="noopener" title="Click to open LinkedIn profile">in</a>`
           : '';
-        // Network superscript per Champion row
-        const netNum=c.network==='EWING'?1:c.network==='DIERCKS'?2:null;
-        const netSup=netNum?`<sup style="font-size:9px;font-weight:700;color:var(--gold);opacity:0.9;margin-left:2px;">${netNum}</sup>`:'';
+        // Network superscripts combined from networks array
+        const netSup=(c.networks||[]).map(n=>{
+          const num=n==='EWING'?1:n==='DIERCKS'?2:null;
+          return num?`<sup style="font-size:9px;font-weight:700;color:var(--gold);opacity:0.9;margin-left:1px;">${num}</sup>`:'';
+        }).join('');
         items+=`<div class="connection-item">${nameLink}${netSup}${inBadge}</div>`;
       });
 
