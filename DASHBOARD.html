@@ -212,7 +212,7 @@
     <div class="topbar-right">
       <span class="topbar-user" id="topbarUser"></span>
       <span class="region-badge" id="regionBadge">—</span>
-      <span class="topbar-version" id="topbarVersion">v8.2</span>
+      <span class="topbar-version" id="topbarVersion">v8.3</span>
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
       <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
     </div>
@@ -225,30 +225,8 @@
         <input class="filter-input" id="fName" type="text" placeholder="Search by name…" />
       </div>
       <div class="filter-group">
-        <div class="filter-label">Company</div>
-        <input class="filter-input" id="fCompany" type="text" placeholder="Filter by company…" />
-      </div>
-      <div class="filter-group">
         <div class="filter-label">Role / Title</div>
         <input class="filter-input" id="fRole" type="text" placeholder="Filter by role…" />
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Location</div>
-        <input class="filter-input" id="fLocation" type="text" placeholder="Filter by location…" />
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Connection Name</div>
-        <input class="filter-input" id="fChampion" type="text" placeholder="e.g. Ron Ewing…" />
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Region</div>
-        <div class="checklist-wrap" id="regionFilterWrap">
-          <div class="checklist-trigger" id="regionTrigger" onclick="event.stopPropagation();toggleChecklist('region')">
-            <span id="regionTriggerLabel">All regions</span>
-            <span class="checklist-arrow">▾</span>
-          </div>
-          <div class="checklist-dropdown hidden" id="regionDropdown"></div>
-        </div>
       </div>
       <div class="filter-group">
         <div class="filter-label">CP</div>
@@ -257,12 +235,8 @@
         </div>
       </div>
       <div class="filter-group">
-        <div class="filter-label">Date From</div>
-        <input class="filter-input" id="fDateFrom" type="date" />
-      </div>
-      <div class="filter-group">
-        <div class="filter-label">Date To</div>
-        <input class="filter-input" id="fDateTo" type="date" />
+        <div class="filter-label">Connection Name</div>
+        <input class="filter-input" id="fChampion" type="text" placeholder="e.g. Ron Ewing…" />
       </div>
       <div class="filter-group">
         <div class="filter-label">Source</div>
@@ -277,6 +251,32 @@
       <div class="filter-group">
         <div class="filter-label">Inside X Miles</div>
         <input class="filter-input" id="fMiles" type="number" min="0" placeholder="e.g. 25" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Company</div>
+        <input class="filter-input" id="fCompany" type="text" placeholder="Filter by company…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Location</div>
+        <input class="filter-input" id="fLocation" type="text" placeholder="Filter by location…" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Region</div>
+        <div class="checklist-wrap" id="regionFilterWrap">
+          <div class="checklist-trigger" id="regionTrigger" onclick="event.stopPropagation();toggleChecklist('region')">
+            <span id="regionTriggerLabel">All regions</span>
+            <span class="checklist-arrow">▾</span>
+          </div>
+          <div class="checklist-dropdown hidden" id="regionDropdown"></div>
+        </div>
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Date From</div>
+        <input class="filter-input" id="fDateFrom" type="date" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Date To</div>
+        <input class="filter-input" id="fDateTo" type="date" />
       </div>
       <div class="filter-actions">
         <button class="btn btn-ghost btn-sm" id="btnClearFilters">Clear</button>
