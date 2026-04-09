@@ -307,7 +307,7 @@
           <span id="leadCountChampion" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:#5ec269;"></span>
           <span id="leadCountMutual" style="font-family:'DM Mono',monospace;font-size:11px;font-weight:500;color:var(--gold);"></span>
         </div>
-        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;"><sup style="font-size:9px;font-weight:700;color:var(--gold);">1</sup> Ewing &nbsp;·&nbsp; <sup style="font-size:9px;font-weight:700;color:var(--gold);">2</sup> Diercks</div>
+        <div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--text3);white-space:nowrap;"><sup style="font-size:9px;font-weight:700;color:var(--gold);">1</sup> Ewing &nbsp;·&nbsp; <sup style="font-size:9px;font-weight:700;color:var(--gold);">2</sup> Diercks &nbsp;·&nbsp; <sup style="font-size:9px;font-weight:700;color:var(--gold);">3</sup> Purcell</div>
       </div>
     </div>
 
@@ -338,7 +338,8 @@ const REGIONS_TAB = 'Regions';
 
 const WHOSE_NETWORK_INDEX = {
   'ACwAAADBugUBlmeaaq6uHUC69sFkGoqYQddplsY': 1,
-  'ACwAAAAJIqkB8ZNjeDB1Y_fYbOSpWYISy8Zi8vw': 2
+  'ACwAAAAJIqkB8ZNjeDB1Y_fYbOSpWYISy8Zi8vw': 2,
+  'ACwAAAF1xKUBaOcUIhRLQerWvdLQHED0faoy5aE': 3
 };
 
 
@@ -519,11 +520,14 @@ async function loadLeads(){
           Miles:row[ci['Miles to Round Table']]!==undefined&&row[ci['Miles to Round Table']]!==''?row[ci['Miles to Round Table']]:'',
           CciEwing:row[ci['CCI (EWING']]||row[ci['CCI (EWING)']]||'',
           CciDiercks:row[ci['CCI (DIERCKS']]||row[ci['CCI (DIERCKS)']]||'',
+          CciPurcell:row[ci['CCI (PURCELL)']]||'',
           CciTotal:row[ci['CCI (Total)']]||'',
           CcmEwing:row[ci['CCM (EWING)']]||'',
           CcmEwingUrl:row[ci['CCM (EWING) URL']]||'',
           CcmDiercks:row[ci['CCM (DIERCKS)']]||'',
           CcmDiercksUrl:row[ci['CCM (DIERCKS) URL']]||'',
+          CcmPurcell:row[ci['CCM (PURCELL)']]||'',
+          CcmPurcellUrl:row[ci['CCM (PURCELL) URL']]||'',
           Email:row[ci['EMAIL']]||row[ci['Email']]||'',
           Status:row[ci['STATUS']]||row[ci['Status']]||'',
           OriginalDate:row[ci['ORIGINAL DATE']]||'',
@@ -574,6 +578,7 @@ async function loadLeads(){
       if(row[ci['CCI (Total)']])lead.CciTotal=row[ci['CCI (Total)']];
       if(row[ci['CCI (EWING)']])lead.CciEwing=row[ci['CCI (EWING)']];
       if(row[ci['CCI (DIERCKS)']])lead.CciDiercks=row[ci['CCI (DIERCKS)']];
+      if(row[ci['CCI (PURCELL)']])lead.CciPurcell=row[ci['CCI (PURCELL)']];
     });
 
     allLeads=Array.from(groups.values());
@@ -880,7 +885,7 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
     let connectionsHtml='';
     const cciTotal=lead.CciTotal?parseInt(lead.CciTotal):0;
     const hasChampions=lead.connections.length>0;
-    const hasCcmUrl=lead.CcmEwingUrl||lead.CcmDiercksUrl;
+    const hasCcmUrl=lead.CcmEwingUrl||lead.CcmDiercksUrl||lead.CcmPurcellUrl;
     const hasAnyConnections=hasChampions||hasCcmUrl;
     const oneCol=lead.connections.length<=1;
 
@@ -898,7 +903,7 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
           : '';
         // Network superscripts combined from networks array
         const netSup=(c.networks||[]).map(n=>{
-          const num=n==='EWING'?1:n==='DIERCKS'?2:null;
+          const num=n==='EWING'?1:n==='DIERCKS'?2:n==='PURCELL'?3:null;
           return num?`<sup style="font-size:9px;font-weight:700;color:var(--gold);opacity:0.9;margin-left:1px;">${num}</sup>`:'';
         }).join('');
         items+=`<div class="connection-item">${nameLink}${netSup}${inBadge}</div>`;
@@ -924,6 +929,14 @@ if(lead.Miles!=='') midHtml+=`<div class="mid-item"><div class="mid-label">Miles
           viewAllLinks+=`<div class="mutual-full"><a class="mutual-link" href="${esc(lead.CcmDiercksUrl)}" target="_blank" rel="noopener">${esc(diercksLabel)}</a></div>`;
         }else{
           viewAllLinks+=`<div class="mutual-full"><span class="mutual-link" style="cursor:default;opacity:0.7;">${esc(diercksLabel)}</span></div>`;
+        }
+      }
+      if(lead.CcmPurcell!==null&&lead.CcmPurcell!==undefined&&lead.CcmPurcell!==''){
+        const purcellLabel=`(3) Purcell Mutual Connections: ${lead.CcmPurcell}`;
+        if(lead.CcmPurcellUrl&&session.network==='PURCELL'){
+          viewAllLinks+=`<div class="mutual-full"><a class="mutual-link" href="${esc(lead.CcmPurcellUrl)}" target="_blank" rel="noopener">${esc(purcellLabel)}</a></div>`;
+        }else{
+          viewAllLinks+=`<div class="mutual-full"><span class="mutual-link" style="cursor:default;opacity:0.7;">${esc(purcellLabel)}</span></div>`;
         }
       }
 
