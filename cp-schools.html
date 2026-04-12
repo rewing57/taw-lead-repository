@@ -11,7 +11,7 @@
     --bg:#004969;--bg2:#005a7e;--bg3:#006b96;--bg4:#003d57;
     --border:rgba(255,255,255,0.08);--border2:rgba(125,184,232,0.25);--border3:rgba(125,184,232,0.45);
     --gold:#e8c07d;--gold2:#f5d9a0;--gold3:rgba(232,192,125,0.12);
-    --green:#6ee7b7;--green2:rgba(110,231,183,0.12);--green3:rgba(110,231,183,0.25);
+    --green:#6ee7b7;--green2:rgba(110,231,183,0.12);--green3:rgba(110,231,183,0.28);
     --red:#f87171;--red2:rgba(248,113,113,0.12);
     --blue:#7db8e8;--blue2:rgba(125,184,232,0.1);
     --text:#f0f2fa;--text2:rgba(240,242,250,0.75);--text3:rgba(240,242,250,0.45);--text4:rgba(240,242,250,0.2);
@@ -20,144 +20,126 @@
   html{font-size:16px;}
   body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;overflow-x:hidden;}
   body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 80% 50% at 50% -10%,rgba(0,90,126,0.3) 0%,transparent 60%),radial-gradient(ellipse 40% 40% at 90% 90%,rgba(232,192,125,0.06) 0%,transparent 50%);pointer-events:none;z-index:0;}
-
-  /* ── LOGIN ── */
   #loginScreen{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;background:var(--bg);}
-  .login-box{position:relative;z-index:1;background:var(--bg2);border:1.5px solid var(--border2);border-radius:16px;padding:48px 40px;width:100%;max-width:420px;text-align:center;}
+  .login-box{position:relative;z-index:1;background:var(--bg2);border:1.5px solid var(--border2);border-radius:16px;padding:48px 40px;width:100%;max-width:420px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.4);}
   .login-eyebrow{font-family:'DM Mono',monospace;font-size:11px;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:12px;}
   .login-title{font-family:'Fraunces',serif;font-size:2.2rem;font-weight:700;margin-bottom:8px;line-height:1.1;}
   .login-title span{color:var(--gold2);}
-  .login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.5;}
+  .login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;line-height:1.6;}
   .login-field{width:100%;background:rgba(255,255,255,0.08);border:1.5px solid var(--border2);border-radius:var(--radius);padding:12px 16px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;margin-bottom:10px;outline:none;transition:border-color 0.15s;}
   .login-field:focus{border-color:var(--gold);}
   .login-field::placeholder{color:rgba(240,242,250,0.4);}
   .login-error{font-size:12px;color:var(--red);margin-bottom:10px;min-height:18px;font-family:'DM Mono',monospace;}
-
-  /* ── BUTTONS ── */
-  .btn{display:inline-flex;align-items:center;gap:6px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;padding:8px 16px;border-radius:var(--radius);border:none;cursor:pointer;transition:all 0.15s;}
-  .btn-primary{background:linear-gradient(135deg,#c9a45e,#e8c07d);color:#0c0800;width:100%;justify-content:center;padding:13px;font-size:14px;}
-  .btn-primary:hover{filter:brightness(1.08);}
+  .btn-primary{background:linear-gradient(135deg,#c9a45e,#e8c07d);color:#0c0800;width:100%;border:none;border-radius:var(--radius);padding:13px;font-size:14px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;}
+  .btn-primary:hover:not(:disabled){filter:brightness(1.08);}
   .btn-primary:disabled{opacity:0.4;cursor:not-allowed;}
-  .btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border2);}
-  .btn-ghost:hover{color:var(--text);border-color:var(--border3);}
-  .btn-sm{font-size:12px;padding:5px 11px;}
-  .btn-suggest{background:var(--green2);border:1.5px solid var(--green3);color:var(--green);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:6px 14px;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
-  .btn-suggest:hover:not(:disabled){background:rgba(110,231,183,0.2);}
-  .btn-suggest:disabled{opacity:0.4;cursor:not-allowed;}
-
-  /* ── APP SHELL ── */
   #app{display:none;position:relative;z-index:1;}
   .topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;}
   .topbar-left{display:flex;align-items:center;gap:14px;}
   .topbar-eyebrow{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:var(--gold);line-height:1.2;}
   .topbar-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;}
-  .topbar-right{display:flex;align-items:center;gap:8px;}
+  .topbar-right{display:flex;align-items:center;gap:10px;}
   .topbar-user{font-size:13px;font-weight:600;color:var(--text2);}
   .topbar-version{font-family:'DM Mono',monospace;font-size:10px;color:var(--text3);background:rgba(255,255,255,0.06);border:1px solid var(--border);padding:2px 7px;border-radius:3px;}
-
+  .btn-ghost{background:transparent;color:var(--text2);border:1.5px solid var(--border2);border-radius:var(--radius);padding:5px 12px;font-size:12px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;}
+  .btn-ghost:hover{color:var(--text);border-color:var(--border3);}
   .wrap{max-width:960px;margin:0 auto;padding:28px 24px 80px;}
-
-  /* ── TABS ── */
-  .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:24px;}
-  .tab{padding:10px 20px;font-size:13px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;font-family:'DM Mono',monospace;letter-spacing:0.05em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
+  .tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:28px;gap:4px;}
+  .tab{padding:10px 20px;font-size:12px;font-weight:600;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all 0.15s;font-family:'DM Mono',monospace;letter-spacing:0.06em;text-transform:uppercase;display:flex;align-items:center;gap:7px;}
   .tab:hover{color:var(--text2);}
   .tab.active{color:var(--gold);border-bottom-color:var(--gold);}
   .tab-badge{background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);border-radius:10px;padding:1px 7px;font-size:10px;font-weight:700;}
   .tab-badge.green{background:var(--green2);border-color:var(--green3);color:var(--green);}
-
   .panel{display:none;}
   .panel.active{display:block;}
-
-  /* ── SEARCH SECTION ── */
-  .search-section{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius3);padding:20px 24px;margin-bottom:20px;}
-  .section-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--text3);margin-bottom:10px;}
-  .section-title{font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;margin-bottom:6px;}
-  .section-sub{font-size:13px;color:var(--text2);margin-bottom:16px;line-height:1.5;}
-  .search-row{display:flex;gap:10px;}
-  .search-input{flex:1;background:rgba(255,255,255,0.07);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;}
+  .suggest-hero{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius3);padding:24px 28px;margin-bottom:20px;}
+  .step-label{font-family:'DM Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+  .step-title{font-family:'Fraunces',serif;font-size:1.35rem;font-weight:700;margin-bottom:6px;}
+  .step-sub{font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:18px;}
+  .search-wrap{position:relative;}
+  .search-icon{position:absolute;left:13px;top:50%;transform:translateY(-50%);opacity:0.4;pointer-events:none;}
+  .search-input{width:100%;background:rgba(255,255,255,0.07);border:1.5px solid var(--border2);border-radius:var(--radius2);padding:11px 14px 11px 40px;font-size:14px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;transition:border-color 0.15s;}
   .search-input:focus{border-color:var(--gold);}
   .search-input::placeholder{color:var(--text4);}
-
-  /* ── SEARCH RESULTS ── */
-  .results-box{background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius2);margin-top:10px;max-height:280px;overflow-y:auto;display:none;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.12) transparent;}
-  .result-item{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);gap:12px;transition:background 0.1s;}
-  .result-item:last-child{border-bottom:none;}
-  .result-item:hover{background:rgba(125,184,232,0.05);}
-  .result-name{font-size:13px;font-weight:600;}
-  .result-location{font-size:11px;color:var(--blue);margin-top:2px;font-family:'DM Mono',monospace;}
-  .result-id{font-size:10px;color:var(--text4);font-family:'DM Mono',monospace;margin-top:1px;}
-  .result-status-badge{font-family:'DM Mono',monospace;font-size:10px;padding:3px 8px;border-radius:3px;white-space:nowrap;}
-  .badge-approved{background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);}
-  .badge-suggested{background:var(--green2);border:1px solid var(--green3);color:var(--green);}
-
-  .status-msg{font-size:12px;color:var(--text3);min-height:18px;margin-top:6px;font-family:'DM Mono',monospace;}
-  .status-msg.ok{color:var(--green);}
-  .status-msg.err{color:var(--red);}
-  .status-msg.warn{color:var(--gold);}
-
-  /* ── SCHOOL LIST (approved view) ── */
-  .list-controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
-  .list-controls-left{display:flex;align-items:center;gap:10px;}
-  .count-badge{font-family:'DM Mono',monospace;font-size:11px;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);color:var(--gold);border-radius:20px;padding:2px 10px;}
-  .filter-row{display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1.5px solid var(--border2);border-radius:var(--radius);padding:7px 12px;gap:8px;max-width:320px;}
+  .search-hint{font-size:11px;color:var(--text3);margin-top:6px;font-family:'DM Mono',monospace;}
+  .results-wrap{margin-top:12px;background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius2);overflow:hidden;display:none;max-height:320px;overflow-y:auto;scrollbar-width:thin;scrollbar-color:rgba(255,255,255,0.12) transparent;}
+  .result-row{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);gap:12px;transition:background 0.1s;}
+  .result-row:last-child{border-bottom:none;}
+  .result-row:hover{background:rgba(125,184,232,0.05);}
+  .result-name{font-size:13px;font-weight:600;line-height:1.3;}
+  .result-location{font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;margin-top:2px;}
+  .badge-listed{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);white-space:nowrap;}
+  .badge-pending{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;background:var(--green2);border:1px solid var(--green3);color:var(--green);white-space:nowrap;}
+  .btn-suggest{background:var(--green2);border:1.5px solid var(--green3);color:var(--green);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;padding:5px 14px;border-radius:var(--radius);cursor:pointer;transition:all 0.15s;white-space:nowrap;}
+  .btn-suggest:hover{background:rgba(110,231,183,0.22);}
+  .no-results{padding:16px 14px;text-align:center;font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;}
+  .confirm-box{background:var(--bg2);border:1.5px solid var(--border2);border-radius:var(--radius3);padding:22px 26px;margin-bottom:20px;display:none;}
+  .confirm-school-name{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:700;margin-bottom:4px;}
+  .confirm-school-loc{font-size:12px;color:var(--blue);font-family:'DM Mono',monospace;margin-bottom:16px;}
+  .note-label{font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px;}
+  .note-input{width:100%;background:rgba(255,255,255,0.06);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:68px;transition:border-color 0.15s;margin-bottom:14px;}
+  .note-input:focus{border-color:var(--gold);}
+  .note-input::placeholder{color:var(--text4);}
+  .confirm-actions{display:flex;align-items:center;gap:10px;}
+  .btn-submit{background:linear-gradient(135deg,#c9a45e,#e8c07d);color:#0c0800;border:none;border-radius:var(--radius);padding:9px 22px;font-size:13px;font-weight:700;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;}
+  .btn-submit:hover:not(:disabled){filter:brightness(1.08);}
+  .btn-submit:disabled{opacity:0.4;cursor:not-allowed;}
+  .btn-cancel{background:transparent;border:1.5px solid var(--border2);color:var(--text3);border-radius:var(--radius);padding:8px 14px;font-size:12px;font-family:'DM Sans',sans-serif;cursor:pointer;transition:all 0.15s;}
+  .btn-cancel:hover{border-color:var(--border3);color:var(--text2);}
+  .submit-status{font-size:11px;font-family:'DM Mono',monospace;margin-left:auto;}
+  .submit-status.ok{color:var(--green);}
+  .submit-status.err{color:var(--red);}
+  .list-controls{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;}
+  .list-title{font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;}
+  .count-pill{font-family:'DM Mono',monospace;font-size:11px;background:var(--gold3);border:1px solid rgba(232,192,125,0.25);color:var(--gold);border-radius:20px;padding:2px 10px;margin-left:8px;}
+  .filter-row{display:flex;align-items:center;background:rgba(255,255,255,0.05);border:1.5px solid var(--border2);border-radius:var(--radius);padding:7px 12px;gap:8px;}
   .filter-row svg{flex-shrink:0;opacity:0.4;}
-  .filter-input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;flex:1;}
+  .filter-input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;width:200px;}
   .filter-input::placeholder{color:var(--text4);}
   .filter-clear{background:none;border:none;color:var(--text3);cursor:pointer;font-size:18px;padding:0;line-height:1;}
   .filter-clear:hover{color:var(--text);}
-
-  /* ── SCHOOL GRID ── */
   .school-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;}
   .school-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius2);padding:12px 14px;transition:border-color 0.15s;}
   .school-card:hover{border-color:var(--border2);}
-  .school-card-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:4px;}
-  .school-card-location{font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;}
+  .school-card-name{font-size:13px;font-weight:600;line-height:1.3;margin-bottom:3px;}
+  .school-card-loc{font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;}
+  .empty-state{text-align:center;padding:60px 20px;font-size:12px;color:var(--text4);font-family:'DM Mono',monospace;font-style:italic;}
   .loading-wrap{text-align:center;padding:60px 20px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);}
   .loading-spinner{display:inline-block;width:20px;height:20px;border:2px solid var(--border2);border-top-color:var(--gold);border-radius:50%;animation:spin 0.7s linear infinite;margin-bottom:12px;}
   @keyframes spin{to{transform:rotate(360deg)}}
-  .empty-state{text-align:center;padding:60px 20px;font-family:'DM Mono',monospace;font-size:12px;color:var(--text3);}
-
-  /* ── MY SUGGESTIONS ── */
-  .suggestion-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:12px;}
-  .suggestion-name{font-size:14px;font-weight:700;font-family:'Fraunces',serif;margin-bottom:4px;}
-  .suggestion-location{font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;margin-bottom:3px;}
-  .suggestion-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
-  .status-pill{font-family:'DM Mono',monospace;font-size:10px;padding:3px 9px;border-radius:20px;white-space:nowrap;flex-shrink:0;}
+  .my-card{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius2);padding:14px 16px;display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:8px;}
+  .my-card-name{font-family:'Fraunces',serif;font-size:1rem;font-weight:700;margin-bottom:3px;}
+  .my-card-loc{font-size:11px;color:var(--blue);font-family:'DM Mono',monospace;margin-bottom:4px;}
+  .my-card-meta{font-size:10px;color:var(--text3);font-family:'DM Mono',monospace;}
+  .status-pill{font-family:'DM Mono',monospace;font-size:10px;padding:3px 10px;border-radius:20px;white-space:nowrap;flex-shrink:0;margin-top:2px;}
   .pill-pending{background:var(--gold3);border:1px solid rgba(232,192,125,0.3);color:var(--gold);}
   .pill-approved{background:var(--green2);border:1px solid var(--green3);color:var(--green);}
-
-  /* ── TOAST ── */
-  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:12px;font-family:'DM Mono',monospace;z-index:300;transition:opacity 0.3s;opacity:0;pointer-events:none;}
-  .toast.show{opacity:1;}
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--bg3);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 16px;font-size:12px;font-family:'DM Mono',monospace;z-index:300;transition:opacity 0.3s,transform 0.3s;opacity:0;transform:translateY(6px);pointer-events:none;}
+  .toast.show{opacity:1;transform:translateY(0);}
   .toast.ok{border-color:rgba(110,231,183,0.4);color:var(--green);}
   .toast.err{border-color:rgba(248,113,113,0.4);color:var(--red);}
   .toast.warn{border-color:rgba(232,192,125,0.4);color:var(--gold);}
-
-  @media(max-width:600px){
-    .wrap{padding:16px 14px 60px;}
-    .topbar{padding:10px 14px;}
-    .school-grid{grid-template-columns:1fr;}
-    .search-row{flex-direction:column;}
-  }
+  ::-webkit-scrollbar{width:4px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:rgba(255,255,255,0.12);border-radius:2px;}
+  @media(max-width:600px){.wrap{padding:16px 14px 60px;}.topbar{padding:10px 14px;}.school-grid{grid-template-columns:1fr;}.login-box{padding:32px 24px;}.filter-input{width:120px;}}
 </style>
 </head>
 <body>
 
-<!-- ══ LOGIN ══ -->
 <div id="loginScreen">
   <div class="login-box">
     <img src="https://truthatwork.org/wp-content/uploads/2022/12/Truth-at-Work-Logo_KO-480x328.png" style="height:44px;filter:brightness(0) invert(1);margin-bottom:16px;" alt="Truth at Work"/>
     <div class="login-eyebrow">Truth at Work</div>
     <h1 class="login-title">School <span>Suggestions</span></h1>
-    <p class="login-sub">Sign in with your chapter credentials to view the approved school list and suggest additions.</p>
+    <p class="login-sub">Sign in with your chapter credentials to browse the approved school list and suggest additions.</p>
     <input class="login-field" type="text" id="loginUser" placeholder="Chapter username" autocomplete="off"/>
     <input class="login-field" type="password" id="loginPass" placeholder="Password" autocomplete="off"/>
     <div class="login-error" id="loginError"></div>
-    <button class="btn btn-primary" id="btnLogin">Sign In</button>
+    <button class="btn-primary" id="btnLogin">Sign In</button>
   </div>
 </div>
 
-<!-- ══ APP ══ -->
 <div id="app">
   <div class="topbar">
     <div class="topbar-left">
@@ -169,458 +151,268 @@
     </div>
     <div class="topbar-right">
       <span class="topbar-user" id="topbarUser"></span>
-      <span class="topbar-version">v1.0</span>
-      <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
+      <span class="topbar-version">v1.1</span>
+      <button class="btn-ghost" id="btnSignOut">Sign Out</button>
     </div>
   </div>
 
   <div class="wrap">
-
     <div class="tabs">
       <div class="tab active" data-tab="suggest">Suggest a School</div>
-      <div class="tab" data-tab="approved">
-        Approved List <span class="tab-badge" id="approvedCount">—</span>
-      </div>
-      <div class="tab" data-tab="mine">
-        My Suggestions <span class="tab-badge green" id="myCount" style="display:none">0</span>
-      </div>
+      <div class="tab" data-tab="approved">Approved List <span class="tab-badge" id="approvedCount">—</span></div>
+      <div class="tab" data-tab="mine">My Suggestions <span class="tab-badge green" id="myCount" style="display:none">0</span></div>
     </div>
 
-    <!-- ══ PANEL: SUGGEST ══ -->
+    <!-- SUGGEST -->
     <div class="panel active" id="panel-suggest">
-      <div class="search-section">
-        <div class="section-label">Step 1</div>
-        <div class="section-title">Search for a School</div>
-        <div class="section-sub">Type the name of a Christian college or university you'd like to suggest. We'll search LinkedIn to find the exact school record.</div>
-        <div class="search-row">
-          <input class="search-input" id="searchInput" placeholder="e.g. Wheaton College, Calvin University…" autocomplete="off"/>
-          <button class="btn btn-primary" id="searchBtn" style="width:auto;padding:10px 20px;">Search</button>
+      <div class="suggest-hero">
+        <div class="step-label">Step 1 — Find the School</div>
+        <div class="step-title">Search U.S. Colleges &amp; Universities</div>
+        <div class="step-sub">Type any part of a school's name. We'll search our database of 2,800+ U.S. four-year institutions. Schools already on the TAW approved list are marked — you can only suggest schools not yet listed.</div>
+        <div class="search-wrap">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input class="search-input" id="searchInput" placeholder="e.g. Wheaton, Calvin, Taylor, Houghton…" autocomplete="off"/>
         </div>
-        <div class="status-msg" id="searchStatus"></div>
-        <div class="results-box" id="resultsBox"></div>
+        <div class="search-hint" id="searchHint">Start typing to search…</div>
+        <div class="results-wrap" id="resultsWrap"></div>
       </div>
-
-      <div class="search-section" id="confirmSection" style="display:none;">
-        <div class="section-label">Step 2</div>
-        <div class="section-title">Confirm Your Suggestion</div>
-        <div id="confirmDetails" style="background:var(--bg4);border:1px solid var(--border2);border-radius:var(--radius2);padding:14px 16px;margin-bottom:14px;"></div>
-        <div class="section-sub" style="margin-bottom:12px;">Add an optional note about why you're suggesting this school.</div>
-        <textarea id="suggestionNote" placeholder="Optional: Why are you suggesting this school? (e.g. strong alumni in my region, well-known Christian institution…)" style="width:100%;background:rgba(255,255,255,0.06);border:1.5px solid var(--border2);border-radius:var(--radius);padding:10px 14px;font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;outline:none;resize:vertical;min-height:70px;transition:border-color 0.15s;"></textarea>
-        <div style="display:flex;gap:10px;margin-top:12px;align-items:center;">
-          <button class="btn btn-primary" id="btnSubmit" style="width:auto;padding:10px 24px;">Submit Suggestion</button>
-          <button class="btn btn-ghost btn-sm" id="btnCancel">Cancel</button>
-          <div class="status-msg" id="submitStatus" style="margin-top:0;flex:1;text-align:right;"></div>
+      <div class="confirm-box" id="confirmBox">
+        <div class="step-label">Step 2 — Confirm Your Suggestion</div>
+        <div class="confirm-school-name" id="confirmName"></div>
+        <div class="confirm-school-loc" id="confirmLoc"></div>
+        <div class="note-label">Note (optional)</div>
+        <textarea class="note-input" id="noteInput" placeholder="Why are you suggesting this school? e.g. Strong alumni presence in my region…"></textarea>
+        <div class="confirm-actions">
+          <button class="btn-submit" id="btnSubmit">Submit Suggestion</button>
+          <button class="btn-cancel" id="btnCancel">Cancel</button>
+          <span class="submit-status" id="submitStatus"></span>
         </div>
       </div>
     </div>
 
-    <!-- ══ PANEL: APPROVED LIST ══ -->
+    <!-- APPROVED LIST -->
     <div class="panel" id="panel-approved">
       <div class="list-controls">
-        <div class="list-controls-left">
-          <span style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;">Approved Schools</span>
-          <span class="count-badge" id="approvedListCount">—</span>
-        </div>
+        <div><span class="list-title">Approved Schools</span><span class="count-pill" id="approvedListCount">—</span></div>
         <div class="filter-row">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input class="filter-input" id="listFilter" placeholder="Filter by name or city…"/>
           <button class="filter-clear" id="listFilterClear">×</button>
         </div>
       </div>
-      <div id="approvedListWrap">
-        <div class="loading-wrap"><div class="loading-spinner"></div><br/>Loading schools…</div>
-      </div>
+      <div id="approvedGrid"><div class="loading-wrap"><div class="loading-spinner"></div><br/>Loading…</div></div>
     </div>
 
-    <!-- ══ PANEL: MY SUGGESTIONS ══ -->
+    <!-- MY SUGGESTIONS -->
     <div class="panel" id="panel-mine">
-      <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:16px;">My Suggestions</div>
-      <div id="mySuggestionsWrap">
-        <div class="empty-state">You haven't submitted any suggestions yet.</div>
-      </div>
+      <div style="font-family:'Fraunces',serif;font-size:1.15rem;font-weight:700;margin-bottom:18px;">My Suggestions</div>
+      <div id="mySuggestionsWrap"><div class="empty-state">You haven't submitted any suggestions yet.</div></div>
     </div>
-
   </div>
 </div>
 
-<div class="toast hidden" id="toast"></div>
+<div class="toast" id="toast"></div>
 
 <script>
-// ══════════════════════════════════════════════
-//  CONFIG — replace YOUR_TOKEN_HERE with your
-//  fine-grained GitHub token before deploying
-// ══════════════════════════════════════════════
-const GITHUB_TOKEN = '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';
+// ══ CONFIG ══════════════════════════════════════
+// Replace YOUR_TOKEN_HERE with your fine-grained
+// GitHub Personal Access Token before deploying
+const GITHUB_TOKEN = 'YOUR_TOKEN_HERE';
 const GITHUB_REPO  = 'rewing57/taw-search-config';
 const GITHUB_FILE  = 'schools.json';
 const GITHUB_RAW   = `https://raw.githubusercontent.com/${GITHUB_REPO}/main/${GITHUB_FILE}`;
 const GITHUB_API   = `https://api.github.com/repos/${GITHUB_REPO}/contents/${GITHUB_FILE}`;
+const COLLEGES_URL = 'https://raw.githubusercontent.com/rewing57/taw-lead-repository/main/us-colleges.json';
+const SHEET_ID     = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
+const API_KEY      = 'AIzaSyC0BTQBKAnBUzc2LacWDX_K8Xw-HC5ahtE';
+const REGIONS_TAB  = 'Regions';
 
-const SHEET_ID    = '1gPCcH4GqCoRa8H7g4Y5vVUw-dp7xhhXugt9FJj82mYI';
-const API_KEY     = 'AIzaSyC0BTQBKAnBUzc2LacWDX_K8Xw-HC5ahtE';
-const REGIONS_TAB = 'Regions';
+// ══ STATE ════════════════════════════════════════
+let session=null, tawSchools=[], allColleges=[], pendingSchool=null, approvedFilter='';
 
-// ══════════════════════════════════════════════
-//  STATE
-// ══════════════════════════════════════════════
-let session = null;
-let allSchools = [];
-let pendingSchool = null; // school selected from search, awaiting confirm
-
-// ══════════════════════════════════════════════
-//  UTILS
-// ══════════════════════════════════════════════
-const $ = id => document.getElementById(id);
+// ══ UTILS ════════════════════════════════════════
+const $=id=>document.getElementById(id);
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function showToast(msg,type='ok'){
-  const t=$('toast');t.textContent=msg;t.className=`toast show ${type}`;
-  setTimeout(()=>t.classList.remove('show'),3000);
-}
-function setStatus(id,msg,type=''){
-  const el=$(id);if(!el)return;
-  el.textContent=msg;el.className='status-msg'+(type?' '+type:'');
-}
+function showToast(msg,type='ok'){const t=$('toast');t.textContent=msg;t.className=`toast show ${type}`;setTimeout(()=>t.classList.remove('show'),3200);}
+function setSubmitStatus(msg,type=''){const el=$('submitStatus');el.textContent=msg;el.className='submit-status'+(type?' '+type:'');}
 
-// ══════════════════════════════════════════════
-//  TABS
-// ══════════════════════════════════════════════
+// ══ TABS ═════════════════════════════════════════
 document.querySelectorAll('.tab').forEach(tab=>{
   tab.addEventListener('click',()=>{
     document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
     document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
     tab.classList.add('active');
     $('panel-'+tab.dataset.tab).classList.add('active');
-    if(tab.dataset.tab==='approved') renderApprovedList();
-    if(tab.dataset.tab==='mine') renderMySuggestions();
+    if(tab.dataset.tab==='approved')renderApprovedGrid();
+    if(tab.dataset.tab==='mine')renderMySuggestions();
   });
 });
 
-// ══════════════════════════════════════════════
-//  LOGIN
-// ══════════════════════════════════════════════
+// ══ LOGIN ════════════════════════════════════════
 async function readSheet(tab){
-  const url=`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`;
-  const res=await fetch(url);
+  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(tab)}?key=${API_KEY}`);
   if(!res.ok){const e=await res.json();throw new Error(e.error?.message||res.status);}
   return(await res.json()).values||[];
 }
 
 function doLogin(){
-  const user=$('loginUser').value.trim();
-  const pass=$('loginPass').value.trim();
+  const user=$('loginUser').value.trim(), pass=$('loginPass').value.trim();
   $('loginError').textContent='';
   if(!user||!pass){$('loginError').textContent='Please enter your username and password.';return;}
   $('btnLogin').disabled=true;
   readSheet(REGIONS_TAB).then(rows=>{
     if(!rows||rows.length<2){$('loginError').textContent='Could not load region data.';return;}
-    const headers=rows[0].map(h=>String(h).toLowerCase().trim());
-    const uIdx=headers.indexOf('username');
-    const pIdx=headers.indexOf('password');
-    const cIdx=headers.indexOf('chaptername');
-    const fnIdx=headers.indexOf('full name');
-    const adminIdx=headers.indexOf('admin');
-    const match=rows.slice(1).find(r=>
-      String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&
-      String(r[pIdx]||'').trim()===pass
-    );
+    const h=rows[0].map(v=>String(v).toLowerCase().trim());
+    const uIdx=h.indexOf('username'),pIdx=h.indexOf('password'),cIdx=h.indexOf('chaptername'),fnIdx=h.indexOf('full name'),adminIdx=h.indexOf('admin');
+    const match=rows.slice(1).find(r=>String(r[uIdx]||'').toLowerCase().trim()===user.toLowerCase()&&String(r[pIdx]||'').trim()===pass);
     if(!match){$('loginError').textContent='Incorrect username or password.';return;}
-    const isAdmin=adminIdx>-1&&String(match[adminIdx]||'').toLowerCase().trim()==='yes';
-    session={
-      username:user,
-      chapter:String(match[cIdx]||user).trim(),
-      fullName:String(match[fnIdx]||match[cIdx]||user).trim(),
-      isAdmin
-    };
+    session={username:user,chapter:String(match[cIdx]||user).trim(),fullName:String(match[fnIdx]||match[cIdx]||user).trim(),isAdmin:adminIdx>-1&&String(match[adminIdx]||'').toLowerCase().trim()==='yes'};
     sessionStorage.setItem('taw_school_session',JSON.stringify(session));
     startApp();
-  }).catch(e=>{$('loginError').textContent='Login error: '+e.message;})
-  .finally(()=>{$('btnLogin').disabled=false;});
+  }).catch(e=>{$('loginError').textContent='Login error: '+e.message;}).finally(()=>{$('btnLogin').disabled=false;});
 }
 $('btnLogin').addEventListener('click',doLogin);
 $('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
 
-// ══════════════════════════════════════════════
-//  APP INIT
-// ══════════════════════════════════════════════
+// ══ APP INIT ═════════════════════════════════════
 async function startApp(){
   $('loginScreen').style.display='none';
   $('app').style.display='block';
-  $('topbarUser').textContent=session.fullName+(session.isAdmin?' (Admin)':'');
-  await loadSchools();
+  $('topbarUser').textContent=session.fullName+(session.isAdmin?' · Admin':'');
+  await Promise.all([loadTawSchools(),loadColleges()]);
 }
 
-async function loadSchools(){
+async function loadTawSchools(){
   try{
     const resp=await fetch(GITHUB_RAW+'?t='+Date.now());
     if(!resp.ok)throw new Error('HTTP '+resp.status);
-    allSchools=await resp.json();
-    // Support old schema
-    allSchools=allSchools.map(s=>({
-      id:s.id,name:s.name,location:s.location||'',
-      status:s.status||'approved',
-      suggestedBy:s.suggestedBy||'',suggestedDate:s.suggestedDate||''
-    }));
-    const approved=allSchools.filter(s=>s.status==='approved').length;
-    $('approvedCount').textContent=approved;
-    updateMyCount();
-  }catch(e){
-    showToast('Error loading schools: '+e.message,'err');
-  }
-}
-
-// ══════════════════════════════════════════════
-//  SEARCH LINKEDIN
-// ══════════════════════════════════════════════
-$('searchBtn').addEventListener('click',doSearch);
-$('searchInput').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch();});
-
-async function doSearch(){
-  const q=$('searchInput').value.trim();
-  if(!q)return;
-  $('searchBtn').disabled=true;
-  $('searchBtn').textContent='Searching…';
-  setStatus('searchStatus','');
-  $('resultsBox').style.display='none';
-
-  try{
-    // Use LinkedIn Sales Navigator API via fetch
-    // NOTE: This requires the user to be logged into LinkedIn in the same browser
-    const csrfCookie=await getLinkedInCsrf();
-    if(!csrfCookie){
-      setStatus('searchStatus','Please log into LinkedIn Sales Navigator in this browser first, then try again.','warn');
-      return;
-    }
-    const url=`https://www.linkedin.com/sales-api/salesApiFacetTypeahead?q=query&start=0&count=10&type=SCHOOL&query=${encodeURIComponent(q)}`;
-    const resp=await fetch(url,{
-      credentials:'include',
-      headers:{'accept':'application/json','csrf-token':csrfCookie,'x-restli-protocol-version':'2.0.0'}
-    });
-    if(!resp.ok){setStatus('searchStatus',`LinkedIn search error ${resp.status} — make sure you're logged into Sales Navigator`,'err');return;}
     const data=await resp.json();
-    const elements=data.elements||data.results||[];
-    if(!elements.length){setStatus('searchStatus','No results found — try a different spelling','warn');return;}
-    const results=elements.map(el=>({
-      name:el.displayValue||el.name||'',
-      id:String(el.id||(el.objectUrn||'').replace('urn:li:organization:','').replace('urn:li:school:','')||''),
-      location:el.subDisplayValue||el.location||''
-    })).filter(r=>r.id&&r.name);
-    renderSearchResults(results);
-  }catch(e){
-    setStatus('searchStatus','Search error: '+e.message,'err');
-  }finally{
-    $('searchBtn').disabled=false;
-    $('searchBtn').textContent='Search';
-  }
+    tawSchools=data.map(s=>({id:s.id||'',name:s.name||'',location:s.location||'',status:s.status||'approved',suggestedBy:s.suggestedBy||'',suggestedDate:s.suggestedDate||'',note:s.note||''}));
+    $('approvedCount').textContent=tawSchools.filter(s=>s.status==='approved').length;
+    updateMyCount();
+  }catch(e){showToast('Error loading school list: '+e.message,'err');}
 }
 
-async function getLinkedInCsrf(){
-  // For a web page (not extension), we can try fetching the cookie via a LinkedIn request
-  // The cookie approach only works in extensions; for web pages we attempt the request
-  // and let credentials:include handle it. We return a placeholder to proceed.
-  return 'ajax:placeholder'; // credentials:include will send the actual cookie
+async function loadColleges(){
+  try{
+    const resp=await fetch(COLLEGES_URL+'?t='+Date.now());
+    if(!resp.ok)throw new Error('HTTP '+resp.status);
+    allColleges=await resp.json();
+  }catch(e){showToast('Error loading college database: '+e.message,'err');}
 }
 
-function renderSearchResults(results){
-  if(!results.length){
-    $('resultsBox').innerHTML='<div style="padding:12px 14px;color:var(--text4);font-size:12px;">No results found</div>';
-    $('resultsBox').style.display='block';
-    return;
-  }
-  $('resultsBox').innerHTML=results.map(r=>{
-    const existing=allSchools.find(s=>s.id===r.id);
-    const statusHtml=existing
-      ? `<span class="result-status-badge ${existing.status==='approved'?'badge-approved':'badge-suggested'}">${existing.status==='approved'?'Already Listed':'Suggested'}</span>`
-      : `<button class="btn-suggest" data-id="${esc(r.id)}" data-name="${esc(r.name)}" data-location="${esc(r.location)}">+ Suggest</button>`;
-    return `<div class="result-item">
-      <div>
-        <div class="result-name">${esc(r.name)}</div>
-        ${r.location?`<div class="result-location">${esc(r.location)}</div>`:'<div class="result-location" style="color:var(--text4);font-style:italic;">Location not available</div>'}
-        <div class="result-id">LinkedIn ID: ${esc(r.id)}</div>
-      </div>
-      ${statusHtml}
-    </div>`;
-  }).join('');
-  $('resultsBox').querySelectorAll('.btn-suggest').forEach(btn=>{
-    btn.addEventListener('click',()=>selectForSuggestion(btn.dataset.id,btn.dataset.name,btn.dataset.location));
-  });
-  $('resultsBox').style.display='block';
-}
-
-// ══════════════════════════════════════════════
-//  SUGGESTION FLOW
-// ══════════════════════════════════════════════
-function selectForSuggestion(id,name,location){
-  pendingSchool={id,name,location};
-  const parts=name.split(' - ');
-  const displayName=parts[0].trim();
-  $('confirmDetails').innerHTML=`
-    <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:6px;">${esc(displayName)}</div>
-    <div style="font-size:12px;color:var(--blue);font-family:'DM Mono',monospace;margin-bottom:4px;">${esc(location||'Location not available')}</div>
-    <div style="font-size:11px;color:var(--text4);font-family:'DM Mono',monospace;">LinkedIn ID: ${esc(id)}</div>
-  `;
-  $('confirmSection').style.display='block';
-  $('confirmSection').scrollIntoView({behavior:'smooth',block:'nearest'});
-  setStatus('submitStatus','');
-  $('suggestionNote').value='';
-}
-
-$('btnCancel').addEventListener('click',()=>{
-  pendingSchool=null;
-  $('confirmSection').style.display='none';
+// ══ SEARCH ═══════════════════════════════════════
+let searchTimer=null;
+$('searchInput').addEventListener('input',function(){
+  clearTimeout(searchTimer);
+  const q=this.value.trim();
+  if(q.length<2){$('resultsWrap').style.display='none';$('searchHint').textContent='Start typing to search…';return;}
+  searchTimer=setTimeout(()=>runSearch(q),120);
 });
 
+function runSearch(q){
+  const term=q.toLowerCase();
+  const matches=allColleges.filter(c=>c.name.toLowerCase().includes(term)||c.city.toLowerCase().includes(term)).slice(0,30);
+  $('searchHint').textContent=matches.length>0?`${matches.length} result${matches.length!==1?'s':''}${matches.length===30?' (showing first 30)':''}…`:'No matches found.';
+  if(!matches.length){
+    $('resultsWrap').innerHTML='<div class="no-results">No institutions found matching that name.</div>';
+    $('resultsWrap').style.display='block';
+    return;
+  }
+  $('resultsWrap').innerHTML=matches.map(c=>{
+    const tawMatch=findTawMatch(c.name);
+    let actionHtml=tawMatch
+      ? (tawMatch.status==='approved'?'<span class="badge-listed">✓ On TAW List</span>':'<span class="badge-pending">⏳ Suggested</span>')
+      : `<button class="btn-suggest" data-name="${esc(c.name)}" data-city="${esc(c.city)}" data-state="${esc(c.state)}">+ Suggest</button>`;
+    return `<div class="result-row"><div><div class="result-name">${esc(c.name)}</div><div class="result-location">${esc(c.city)}, ${esc(c.state)}</div></div><div>${actionHtml}</div></div>`;
+  }).join('');
+  $('resultsWrap').querySelectorAll('.btn-suggest').forEach(btn=>{
+    btn.addEventListener('click',()=>selectSchool(btn.dataset.name,btn.dataset.city,btn.dataset.state));
+  });
+  $('resultsWrap').style.display='block';
+}
+
+function findTawMatch(collegeName){
+  const norm=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const cn=norm(collegeName);
+  return tawSchools.find(s=>{const tn=norm(s.name.split(' - ')[0]);return tn===cn||tn.includes(cn)||cn.includes(tn);})||null;
+}
+
+// ══ SUGGEST FLOW ═════════════════════════════════
+function selectSchool(name,city,state){
+  pendingSchool={name,city,state};
+  $('confirmName').textContent=name;
+  $('confirmLoc').textContent=`${city}, ${state}`;
+  $('noteInput').value='';
+  setSubmitStatus('');
+  $('confirmBox').style.display='block';
+  $('confirmBox').scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+$('btnCancel').addEventListener('click',()=>{pendingSchool=null;$('confirmBox').style.display='none';});
 $('btnSubmit').addEventListener('click',submitSuggestion);
 
 async function submitSuggestion(){
   if(!pendingSchool)return;
-
-  // Check not already in list
-  if(allSchools.find(s=>s.id===pendingSchool.id)){
-    setStatus('submitStatus','This school is already in the list.','warn');
-    return;
-  }
-
+  if(findTawMatch(pendingSchool.name)){setSubmitStatus('This school is already on the TAW list or has been suggested.','err');return;}
   $('btnSubmit').disabled=true;
-  setStatus('submitStatus','Submitting…','');
-
+  setSubmitStatus('Submitting…');
   try{
-    // Get current file SHA
-    const shaResp=await fetch(GITHUB_API,{
-      headers:{'Authorization':`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json'}
-    });
-    if(!shaResp.ok)throw new Error('Could not reach GitHub: HTTP '+shaResp.status);
-    const shaData=await shaResp.json();
-    const sha=shaData.sha;
-
-    // Add suggestion to list
+    const shaResp=await fetch(GITHUB_API,{headers:{'Authorization':`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
+    if(!shaResp.ok)throw new Error('Could not reach GitHub (HTTP '+shaResp.status+')');
+    const {sha}=await shaResp.json();
     const today=new Date().toISOString().slice(0,10);
-    const newEntry={
-      id:pendingSchool.id,
-      name:pendingSchool.name,
-      location:pendingSchool.location||'',
-      status:'suggested',
-      suggestedBy:session.fullName+' ('+session.chapter+')',
-      suggestedDate:today,
-      note:$('suggestionNote').value.trim()
-    };
-
-    const updated=[...allSchools,newEntry].sort((a,b)=>a.name.localeCompare(b.name));
+    const newEntry={id:'',name:pendingSchool.name,location:`${pendingSchool.city}, ${pendingSchool.state}`,status:'suggested',suggestedBy:`${session.fullName} (${session.chapter})`,suggestedDate:today,note:$('noteInput').value.trim()};
+    const updated=[...tawSchools,newEntry].sort((a,b)=>a.name.localeCompare(b.name));
     const content=btoa(unescape(encodeURIComponent(JSON.stringify(updated,null,2))));
-
-    const pushResp=await fetch(GITHUB_API,{
-      method:'PUT',
-      headers:{
-        'Authorization':`token ${GITHUB_TOKEN}`,
-        'Accept':'application/vnd.github.v3+json',
-        'Content-Type':'application/json'
-      },
-      body:JSON.stringify({
-        message:`School suggestion: ${pendingSchool.name} — by ${session.fullName}`,
-        content,
-        sha
-      })
-    });
-
-    if(!pushResp.ok){
-      const err=await pushResp.json();
-      throw new Error(err.message||'HTTP '+pushResp.status);
-    }
-
-    // Update local state
-    allSchools=updated;
+    const pushResp=await fetch(GITHUB_API,{method:'PUT',headers:{'Authorization':`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:`School suggestion: ${pendingSchool.name} — by ${session.fullName}`,content,sha})});
+    if(!pushResp.ok){const err=await pushResp.json();throw new Error(err.message||'HTTP '+pushResp.status);}
+    tawSchools=updated;
     updateMyCount();
-    $('approvedCount').textContent=allSchools.filter(s=>s.status==='approved').length;
-
-    // Reset UI
+    $('approvedCount').textContent=tawSchools.filter(s=>s.status==='approved').length;
     pendingSchool=null;
-    $('confirmSection').style.display='none';
-    $('resultsBox').style.display='none';
+    $('confirmBox').style.display='none';
+    $('resultsWrap').style.display='none';
     $('searchInput').value='';
-    setStatus('submitStatus','','');
+    $('searchHint').textContent='Start typing to search…';
+    setSubmitStatus('');
     showToast('✓ Suggestion submitted — thank you!');
-
-  }catch(e){
-    setStatus('submitStatus','Error: '+e.message,'err');
-  }finally{
-    $('btnSubmit').disabled=false;
-  }
+    renderMySuggestions();
+  }catch(e){setSubmitStatus('Error: '+e.message,'err');}
+  finally{$('btnSubmit').disabled=false;}
 }
 
-// ══════════════════════════════════════════════
-//  APPROVED LIST
-// ══════════════════════════════════════════════
-let approvedFilter='';
-
-function renderApprovedList(filter){
-  if(filter!==undefined)approvedFilter=filter;
-  const approved=allSchools.filter(s=>s.status==='approved');
+// ══ APPROVED LIST ════════════════════════════════
+function renderApprovedGrid(){
+  const approved=tawSchools.filter(s=>s.status==='approved');
   const term=approvedFilter.toLowerCase();
-  const visible=approved.filter(s=>
-    !term||s.name.toLowerCase().includes(term)||(s.location||'').toLowerCase().includes(term)
-  );
+  const visible=approved.filter(s=>!term||s.name.toLowerCase().includes(term)||(s.location||'').toLowerCase().includes(term));
   $('approvedListCount').textContent=term?`${visible.length} / ${approved.length}`:approved.length;
-  if(!visible.length){
-    $('approvedListWrap').innerHTML='<div class="empty-state">No schools match your filter.</div>';
-    return;
-  }
-  const cards=visible.map(s=>{
-    const parts=s.name.split(' - ');
-    const displayName=parts[0].trim();
-    return `<div class="school-card">
-      <div class="school-card-name">${esc(displayName)}</div>
-      <div class="school-card-location">${esc(s.location||'—')}</div>
-    </div>`;
-  }).join('');
-  $('approvedListWrap').innerHTML=`<div class="school-grid">${cards}</div>`;
+  if(!visible.length){$('approvedGrid').innerHTML='<div class="empty-state">No schools match your filter.</div>';return;}
+  $('approvedGrid').innerHTML=`<div class="school-grid">${visible.map(s=>`<div class="school-card"><div class="school-card-name">${esc(s.name.split(' - ')[0].trim())}</div><div class="school-card-loc">${esc(s.location||'—')}</div></div>`).join('')}</div>`;
 }
+$('listFilter').addEventListener('input',e=>{approvedFilter=e.target.value;renderApprovedGrid();});
+$('listFilterClear').addEventListener('click',()=>{$('listFilter').value='';approvedFilter='';renderApprovedGrid();});
 
-$('listFilter').addEventListener('input',e=>renderApprovedList(e.target.value));
-$('listFilterClear').addEventListener('click',()=>{$('listFilter').value='';renderApprovedList('');});
-
-// ══════════════════════════════════════════════
-//  MY SUGGESTIONS
-// ══════════════════════════════════════════════
+// ══ MY SUGGESTIONS ═══════════════════════════════
 function updateMyCount(){
-  const mine=allSchools.filter(s=>s.status==='suggested'&&s.suggestedBy&&s.suggestedBy.includes(session?.chapter||'__none__'));
+  if(!session)return;
+  const mine=tawSchools.filter(s=>s.suggestedBy&&s.suggestedBy.includes(session.chapter));
   $('myCount').textContent=mine.length;
   $('myCount').style.display=mine.length>0?'':'none';
 }
 
 function renderMySuggestions(){
   if(!session)return;
-  const mine=allSchools.filter(s=>s.status==='suggested'&&s.suggestedBy&&s.suggestedBy.includes(session.chapter));
-  // Also show any that were approved that I suggested
-  const approved=allSchools.filter(s=>s.status==='approved'&&s.suggestedBy&&s.suggestedBy.includes(session.chapter));
-  const all=[...mine,...approved];
-  if(!all.length){
-    $('mySuggestionsWrap').innerHTML='<div class="empty-state">You haven\'t submitted any suggestions yet.</div>';
-    return;
-  }
-  $('mySuggestionsWrap').innerHTML=all.map(s=>{
-    const parts=s.name.split(' - ');
-    const displayName=parts[0].trim();
-    return `<div class="suggestion-card" style="margin-bottom:8px;">
-      <div>
-        <div class="suggestion-name">${esc(displayName)}</div>
-        <div class="suggestion-location">${esc(s.location||'—')}</div>
-        <div class="suggestion-meta">Submitted: ${esc(s.suggestedDate||'—')}${s.note?` · "${esc(s.note)}"`:''}</div>
-      </div>
-      <span class="status-pill ${s.status==='approved'?'pill-approved':'pill-pending'}">${s.status==='approved'?'✓ Approved':'Pending'}</span>
-    </div>`;
-  }).join('');
+  const mine=tawSchools.filter(s=>s.suggestedBy&&s.suggestedBy.includes(session.chapter));
+  if(!mine.length){$('mySuggestionsWrap').innerHTML='<div class="empty-state">You haven\'t submitted any suggestions yet.</div>';return;}
+  $('mySuggestionsWrap').innerHTML=mine.map(s=>`<div class="my-card"><div><div class="my-card-name">${esc(s.name.split(' - ')[0].trim())}</div><div class="my-card-loc">${esc(s.location||'—')}</div><div class="my-card-meta">Submitted: ${esc(s.suggestedDate||'—')}${s.note?` · "${esc(s.note)}"`:''}</div></div><span class="status-pill ${s.status==='approved'?'pill-approved':'pill-pending'}">${s.status==='approved'?'✓ Approved':'Pending Review'}</span></div>`).join('');
 }
 
-// ══════════════════════════════════════════════
-//  SIGN OUT
-// ══════════════════════════════════════════════
-$('btnSignOut').addEventListener('click',()=>{
-  sessionStorage.removeItem('taw_school_session');
-  location.reload();
-});
+// ══ SIGN OUT ═════════════════════════════════════
+$('btnSignOut').addEventListener('click',()=>{sessionStorage.removeItem('taw_school_session');location.reload();});
 
-// ══════════════════════════════════════════════
-//  BOOT
-// ══════════════════════════════════════════════
+// ══ BOOT ═════════════════════════════════════════
 const stored=sessionStorage.getItem('taw_school_session');
 if(stored){try{session=JSON.parse(stored);startApp();}catch(e){sessionStorage.removeItem('taw_school_session');}}
 </script>
