@@ -151,7 +151,7 @@
     </div>
     <div class="topbar-right">
       <span class="topbar-user" id="topbarUser"></span>
-      <span class="topbar-version">v1.1</span>
+      <span class="topbar-version">v1.2</span>
       <button class="btn-ghost" id="btnSignOut">Sign Out</button>
     </div>
   </div>
@@ -358,14 +358,14 @@ async function submitSuggestion(){
   $('btnSubmit').disabled=true;
   setSubmitStatus('Submitting…');
   try{
-    const shaResp=await fetch(GITHUB_API,{headers:{'Authorization':`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
+    const shaResp=await fetch(GITHUB_API,{headers:{'Authorization':`Bearer ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json'}});
     if(!shaResp.ok)throw new Error('Could not reach GitHub (HTTP '+shaResp.status+')');
     const {sha}=await shaResp.json();
     const today=new Date().toISOString().slice(0,10);
     const newEntry={id:'',name:pendingSchool.name,location:`${pendingSchool.city}, ${pendingSchool.state}`,status:'suggested',suggestedBy:`${session.fullName} (${session.chapter})`,suggestedDate:today,note:$('noteInput').value.trim()};
     const updated=[...tawSchools,newEntry].sort((a,b)=>a.name.localeCompare(b.name));
     const content=btoa(unescape(encodeURIComponent(JSON.stringify(updated,null,2))));
-    const pushResp=await fetch(GITHUB_API,{method:'PUT',headers:{'Authorization':`token ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:`School suggestion: ${pendingSchool.name} — by ${session.fullName}`,content,sha})});
+    const pushResp=await fetch(GITHUB_API,{method:'PUT',headers:{'Authorization':`Bearer ${GITHUB_TOKEN}`,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},body:JSON.stringify({message:`School suggestion: ${pendingSchool.name} — by ${session.fullName}`,content,sha})});
     if(!pushResp.ok){const err=await pushResp.json();throw new Error(err.message||'HTTP '+pushResp.status);}
     tawSchools=updated;
     updateMyCount();
