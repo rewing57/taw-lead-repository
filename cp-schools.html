@@ -603,7 +603,7 @@ async function renderMySuggestions(){
   await loadMySuggestions();
   updateMyCount();
   if(!mySuggestions.length){
-    $('mySuggestionsWrap').innerHTML='<div class="empty-state">You haven't submitted any suggestions yet.</div>';
+    $('mySuggestionsWrap').innerHTML='<div class="empty-state">You haven\'t submitted any suggestions yet.</div>';
     return;
   }
   const pillClass={PENDING:'pill-pending',APPROVED:'pill-approved',ADDED:'pill-approved'};
