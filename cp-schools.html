@@ -236,7 +236,7 @@
     <div class="panel" id="panel-mine">
       <div style="font-family:'Fraunces',serif;font-size:1.1rem;font-weight:700;margin-bottom:16px;">My Suggestions</div>
       <div id="mySuggestionsWrap">
-        <div class="empty-state">You haven\'t submitted any suggestions yet.</div>
+        <div class="empty-state">You have not submitted any suggestions yet.</div>
       </div>
     </div>
 
@@ -603,7 +603,7 @@ async function renderMySuggestions(){
   await loadMySuggestions();
   updateMyCount();
   if(!mySuggestions.length){
-    $('mySuggestionsWrap').innerHTML='<div class="empty-state">You haven\'t submitted any suggestions yet.</div>';
+    $('mySuggestionsWrap').innerHTML='<div class="empty-state">You have not submitted any suggestions yet.</div>';
     return;
   }
   const pillClass={PENDING:'pill-pending',APPROVED:'pill-approved',ADDED:'pill-approved'};
