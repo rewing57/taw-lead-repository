@@ -212,7 +212,7 @@
     <div class="topbar-right">
       <span class="topbar-user" id="topbarUser"></span>
       <span class="region-badge" id="regionBadge">—</span>
-      <span class="topbar-version" id="topbarVersion">v8.6</span>
+      <span class="topbar-version" id="topbarVersion">v8.7</span>
       <button class="btn btn-ghost btn-sm" id="btnDownload">⬇ Download</button>
       <button class="btn btn-ghost btn-sm" id="btnSignOut">Sign Out</button>
     </div>
@@ -277,6 +277,16 @@
       <div class="filter-group">
         <div class="filter-label">Date To</div>
         <input class="filter-input" id="fDateTo" type="date" />
+      </div>
+      <div class="filter-group">
+        <div class="filter-label">Network Of</div>
+        <div class="checklist-wrap" id="networkFilterWrap">
+          <div class="checklist-trigger" id="networkTrigger" onclick="event.stopPropagation();toggleChecklist('network')">
+            <span id="networkTriggerLabel">All networks</span>
+            <span class="checklist-arrow">▾</span>
+          </div>
+          <div class="checklist-dropdown hidden" id="networkDropdown"></div>
+        </div>
       </div>
       <div class="filter-actions">
         <button class="btn btn-ghost btn-sm" id="btnClearFilters">Clear</button>
@@ -361,8 +371,10 @@ let page = 1;
 const PAGE_SIZE = 100;
 let selectedRegions = new Set();
 let selectedCPs = new Set();
+let selectedNetworks = new Set();
 let totalRegions = 0;
 let totalCPs = 0;
+const ALL_NETWORKS = ['EWING','DIERCKS','PURCELL','RICHARD'];
 
 // ══════════════════════════════════════════════
 //  UTILS
@@ -661,6 +673,11 @@ function buildFilterChecklists(){
   buildChecklist('regionDropdown',regionsToShow,selectedRegions,applyFiltersAndRender,'region',regionsToShow.length);
   updateChecklistLabel('region',selectedRegions,regionsToShow.length);
 
+  // NETWORK OF checklist — always all four, always visible to all users
+  selectedNetworks=new Set(ALL_NETWORKS);
+  buildChecklist('networkDropdown',ALL_NETWORKS,selectedNetworks,applyFiltersAndRender,'network',ALL_NETWORKS.length);
+  updateChecklistLabel('network',selectedNetworks,ALL_NETWORKS.length);
+
   // CP filter
   const cpWrap=$('cpFilterWrap');
   cpWrap.innerHTML='';
@@ -691,25 +708,24 @@ function buildFilterChecklists(){
 }
 
 function updateChecklistLabel(type,selected,total){
-  const labelEl=$(type==='region'?'regionTriggerLabel':'cpTriggerLabel');
+  const idMap={region:'regionTriggerLabel',cp:'cpTriggerLabel',network:'networkTriggerLabel'};
+  const labelEl=$(idMap[type]);
   if(!labelEl)return;
   if(selected.size===0)labelEl.textContent='None selected';
-  else if(selected.size===total)labelEl.textContent=type==='region'?'All regions':'All CPs';
+  else if(selected.size===total)labelEl.textContent=type==='region'?'All regions':type==='network'?'All networks':'All CPs';
   else labelEl.textContent=`${selected.size} selected`;
 }
 
 function toggleChecklist(type){
-  const trigger=$(type==='region'?'regionTrigger':'cpTrigger');
-  const dropdown=$(type==='region'?'regionDropdown':'cpDropdown');
+  const idMap={region:'regionTrigger',cp:'cpTrigger',network:'networkTrigger'};
+  const dropMap={region:'regionDropdown',cp:'cpDropdown',network:'networkDropdown'};
+  const trigger=$(idMap[type]);
+  const dropdown=$(dropMap[type]);
   if(!trigger||!dropdown)return;
   const isOpen=!dropdown.classList.contains('hidden');
   // Close all dropdowns first
-  ['regionDropdown','cpDropdown'].forEach(id=>{
-    const d=$(id);if(d)d.classList.add('hidden');
-  });
-  ['regionTrigger','cpTrigger'].forEach(id=>{
-    const t=$(id);if(t)t.classList.remove('open');
-  });
+  Object.values(dropMap).forEach(id=>{const d=$(id);if(d)d.classList.add('hidden');});
+  Object.values(idMap).forEach(id=>{const t=$(id);if(t)t.classList.remove('open');});
   if(!isOpen){
     dropdown.classList.remove('hidden');
     trigger.classList.add('open');
@@ -717,9 +733,9 @@ function toggleChecklist(type){
 }
 // Close dropdowns when clicking outside
 document.addEventListener('click',e=>{
-  if(!e.target.closest('.checklist-wrap')&&!e.target.closest('#cpFilterWrap')){
-    ['regionDropdown','cpDropdown'].forEach(id=>{const d=$(id);if(d)d.classList.add('hidden');});
-    ['regionTrigger','cpTrigger'].forEach(id=>{const t=$(id);if(t)t.classList.remove('open');});
+  if(!e.target.closest('.checklist-wrap')&&!e.target.closest('#cpFilterWrap')&&!e.target.closest('#networkFilterWrap')){
+    ['regionDropdown','cpDropdown','networkDropdown'].forEach(id=>{const d=$(id);if(d)d.classList.add('hidden');});
+    ['regionTrigger','cpTrigger','networkTrigger'].forEach(id=>{const t=$(id);if(t)t.classList.remove('open');});
   }
 });
 
@@ -756,6 +772,19 @@ function applyFiltersAndRender(){
     if(selectedRegions.size<totalRegions&&!selectedRegions.has((r.Region||'').toUpperCase()))return false;
     if(selectedCPs.size===0)return false;
     if(selectedCPs.size<totalCPs&&!selectedCPs.has((r.CP||'').toUpperCase()))return false;
+    // Network Of filter — OR logic: lead matches if any of its networks is in selectedNetworks
+    if(selectedNetworks.size<ALL_NETWORKS.length){
+      if(selectedNetworks.size===0)return false;
+      const leadNets=new Set();
+      // Named champion connections
+      r.connections.forEach(c=>(c.networks||[]).forEach(n=>leadNets.add(n)));
+      // Ranked mutual (CCM) presence per network
+      if(r.CcmEwing!==''&&r.CcmEwing!==null&&r.CcmEwing!==undefined)leadNets.add('EWING');
+      if(r.CcmDiercks!==''&&r.CcmDiercks!==null&&r.CcmDiercks!==undefined)leadNets.add('DIERCKS');
+      if(r.CcmPurcell!==''&&r.CcmPurcell!==null&&r.CcmPurcell!==undefined)leadNets.add('PURCELL');
+      if(r.CcmRichard!==''&&r.CcmRichard!==null&&r.CcmRichard!==undefined)leadNets.add('RICHARD');
+      if(![...leadNets].some(n=>selectedNetworks.has(n)))return false;
+    }
     if(fDateFrom||fDateTo){
       const d=parseDate(r.OriginalDate||r.LastUpdatedDate);
       if(d){
